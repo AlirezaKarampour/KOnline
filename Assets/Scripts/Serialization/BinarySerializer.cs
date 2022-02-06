@@ -17,6 +17,13 @@ namespace Konline.Scripts.Serilization
                 FieldInfo[] fieldInfos = targetObject.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                 List<FieldInfo> fieldInfoslist = new List<FieldInfo>(fieldInfos);
 
+                //for(int i = 0; i < fieldInfoslist.Count; i++)
+                //{
+                //    fieldInfoslist[i].
+                //}
+
+
+
                 for (int i = 0; i < fieldInfoslist.Count; i++)
                 {
                     if (fieldInfoslist[i].Name == "ClassID")
@@ -276,9 +283,18 @@ namespace Konline.Scripts.Serilization
             {
                 if (fieldType.IsSubclassOf(typeof(SerializableObject)))
                 {
+#if !SERVER_BUILD
                     int key = br.ReadInt32();
-                    SerializableObject refObj = NetworkManager.Instance.SerializableObjects[key];
+                    SerializableObject refObj = NetworkManagerClient.Instance.SerializableObjects[key];
                     fieldInfo.SetValue(obj, refObj);
+#endif
+
+#if SERVER_BUILD
+
+
+
+
+#endif
                 }
             }
             else if(fieldType.IsPrimitive || fieldType == typeof(string))
@@ -319,9 +335,15 @@ namespace Konline.Scripts.Serilization
 
                     for(int i = 0; i < len; i++)
                     {
+#if !SERVER_BUILD
+                        serObjs[i] = NetworkManagerClient.Instance.SerializableObjects[networkIDs[i]];
+#endif
+#if SERVER_BUILD
 
-                        serObjs[i] = NetworkManager.Instance.SerializableObjects[networkIDs[i]];
+                        
 
+
+#endif
 
                     }
 

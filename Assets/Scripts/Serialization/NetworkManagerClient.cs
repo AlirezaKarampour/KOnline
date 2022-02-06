@@ -1,19 +1,28 @@
+#if !SERVER_BUILD
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Konline.Scripts.Serilization {
-    public class NetworkManager : GenericSingleton<NetworkManager>
+    public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
     {
+        
         private int m_NextAvalibleID = 0;
 
-        public Dictionary<int, SerializableObject> SerializableObjects; 
+
+        public Dictionary<int, SerializableObject> SerializableObjects;
+        public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
+
 
         public override void Awake()
         {
             base.Awake();
+            Debug.Log("Client");
             
             SerializableObjects = new Dictionary<int, SerializableObject>();
+            SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
+
+            
         }
 
         // Start is called before the first frame update
@@ -39,5 +48,11 @@ namespace Konline.Scripts.Serilization {
         {
             SerializableObjects.Add(obj.NetworkID, obj);
         }
+
+        public void TrackNetID(SerializableObjectMono obj)
+        {
+            SerializableObjectMonos.Add(obj.NetworkID, obj);
+        }
     }
 }
+#endif
