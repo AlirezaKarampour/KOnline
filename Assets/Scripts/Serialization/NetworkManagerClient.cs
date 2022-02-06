@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Konline.Scripts.Serilization {
     public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
@@ -29,6 +30,8 @@ namespace Konline.Scripts.Serilization {
         void Start()
         {
 
+            
+
         }
 
         // Update is called once per frame
@@ -54,5 +57,9 @@ namespace Konline.Scripts.Serilization {
             SerializableObjectMonos.Add(obj.NetworkID, obj);
         }
     }
+
+    
+
+
 }
 #endif

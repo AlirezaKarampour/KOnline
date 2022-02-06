@@ -17,10 +17,15 @@ namespace Konline.Scripts.Serilization
                 FieldInfo[] fieldInfos = targetObject.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                 List<FieldInfo> fieldInfoslist = new List<FieldInfo>(fieldInfos);
 
-                //for(int i = 0; i < fieldInfoslist.Count; i++)
-                //{
-                //    fieldInfoslist[i].
-                //}
+                for (int i = 0; i < fieldInfoslist.Count; i++)
+                {
+                    Shared att = fieldInfoslist[i].GetCustomAttribute<Shared>();
+                    if(att == null)
+                    {
+                        fieldInfoslist.RemoveAt(i);
+                    }
+
+                }
 
 
 
@@ -236,6 +241,18 @@ namespace Konline.Scripts.Serilization
             Type type = obj.GetType();
             FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
             List<FieldInfo> fieldInfoList = new List<FieldInfo>(fieldInfos);
+
+
+            for (int i = 0; i < fieldInfoList.Count; i++)
+            {
+                Shared att = fieldInfoList[i].GetCustomAttribute<Shared>();
+                if (att == null)
+                {
+                    fieldInfoList.RemoveAt(i);
+                }
+
+            }
+
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BinaryReader br = new BinaryReader(ms , Encoding.UTF8))

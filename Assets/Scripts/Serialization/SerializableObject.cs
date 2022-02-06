@@ -13,7 +13,7 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
         
-        [Shared]
+        
         public int ClientID;
 
         public SerializableObject()
