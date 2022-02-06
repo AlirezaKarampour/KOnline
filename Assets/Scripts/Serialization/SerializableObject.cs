@@ -10,28 +10,38 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public int NetworkID;
 
+        [HideInInspector]
         [Shared]
         public string ClassID;
-        
-        
-        public int ClientID;
 
+#if SERVER_BUILD
+        public ClientManagerServer Client;
+#endif
+
+
+#if !SERVER_BUILD
         public SerializableObject()
         {
-#if !SERVER_BUILD
             NetworkID = NetworkManagerClient.Instance.GiveNetworkID();
             NetworkManagerClient.Instance.TrackNetID(this);
             
 
             ClassID = this.GetType().Name;
+        }
 #endif
 
 #if SERVER_BUILD
-
+        public SerializableObject(ClientManagerServer client)
+        {
+            this.Client = client;
+            NetworkID = Client.GiveNetworkID();
+            Client.TrackNetID(this);
 
             ClassID = this.GetType().Name;
-#endif
         }
+
+            
+#endif
     }
 
     public abstract class SerializableObjectMono : MonoBehaviour
@@ -43,6 +53,9 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
 
+#if SERVER_BUILD
+        public ClientManagerServer Client;
+#endif
         private void Awake()
         {
 #if !SERVER_BUILD
@@ -54,7 +67,8 @@ namespace Konline.Scripts.Serilization
 #endif
 #if SERVER_BUILD
 
-
+            NetworkID = Client.GiveNetworkID();
+            Client.TrackNetID(this);
 
             ClassID = this.GetType().Name;
 #endif
