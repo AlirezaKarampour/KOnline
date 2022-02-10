@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Net;
 
 namespace Konline.Scripts.Serilization
 {
@@ -15,12 +14,8 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
 
-        
-
 #if SERVER_BUILD
-       
-
-
+        public ClientManagerServer Client;
 #endif
 
 
@@ -36,9 +31,13 @@ namespace Konline.Scripts.Serilization
 #endif
 
 #if SERVER_BUILD
-        public SerializableObject()
+        public SerializableObject(ClientManagerServer client)
         {
-            
+            this.Client = client;
+            NetworkID = Client.GiveNetworkID();
+            Client.TrackNetID(this);
+
+            ClassID = this.GetType().Name;
         }
 
             
@@ -55,9 +54,7 @@ namespace Konline.Scripts.Serilization
         public string ClassID;
 
 #if SERVER_BUILD
-       
-
-
+        public ClientManagerServer Client;
 #endif
         private void Awake()
         {
@@ -70,9 +67,10 @@ namespace Konline.Scripts.Serilization
 #endif
 #if SERVER_BUILD
 
-            
+            NetworkID = Client.GiveNetworkID();
+            Client.TrackNetID(this);
 
-
+            ClassID = this.GetType().Name;
 #endif
         }
 
