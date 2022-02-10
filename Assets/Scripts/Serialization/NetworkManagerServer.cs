@@ -9,32 +9,50 @@ namespace Konline.Scripts.Serilization
 {
     public class NetworkManagerServer : GenericSingleton<NetworkManagerServer>
     {
+        private int m_NextAvalibleID = 0;
 
-        public Dictionary<string, ClientManagerServer> Clients;
+        public Dictionary<int, SerializableObject> SerializableObjects;
+        public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
+
 
         public override void Awake()
         {
             base.Awake();
-            Debug.Log("server");
-
+            SerializableObjects = new Dictionary<int, SerializableObject>();
+            SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
 
         }
 
-
-
-        public void AddClient(IPEndPoint endPoint , ClientManagerServer clientManager)
+        // Start is called before the first frame update
+        void Start()
         {
-            string clientAddrr = endPoint.ToString();
-            Clients.Add(clientAddrr, clientManager);
+
         }
 
-        public ClientManagerServer FindClient(IPEndPoint clientEndPoint)
+        // Update is called once per frame
+        void Update()
         {
-            string clientAddrr = clientEndPoint.ToString();
-            ClientManagerServer clientM = Clients[clientAddrr];
 
-            return clientM;
         }
+
+        public int GiveNetworkID()
+        {
+            int netID = m_NextAvalibleID;
+            m_NextAvalibleID++;
+            return netID;
+        }
+
+        public void TrackNetID(SerializableObject obj)
+        {
+            SerializableObjects.Add(obj.NetworkID, obj);
+        }
+
+        public void TrackNetID(SerializableObjectMono obj)
+        {
+            SerializableObjectMonos.Add(obj.NetworkID, obj);
+        }
+
+
     }
 }
 #endif
