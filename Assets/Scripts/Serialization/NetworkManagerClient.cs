@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Konline.Scripts.UDP;
 using System;
 
 namespace Konline.Scripts.Serilization {
@@ -14,6 +15,8 @@ namespace Konline.Scripts.Serilization {
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
 
+
+        private Queue<Packet> m_RecvQ;
 
         public override void Awake()
         {
@@ -56,10 +59,11 @@ namespace Konline.Scripts.Serilization {
         {
             SerializableObjectMonos.Add(obj.NetworkID, obj);
         }
+
+        public void AddToRecvQueue(Packet packet)
+        {
+            m_RecvQ.Enqueue(packet);
+        }
     }
-
-    
-
-
 }
 #endif
