@@ -9,11 +9,15 @@ namespace Konline.Scripts.Serilization {
     public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
     {
         
-        private int m_NextAvalibleID = 0;
+        private int m_TempID = 0;
+        private Dictionary<int, SerializableObject> m_TempSOs;
+        private Dictionary<int, SerializableObjectMono> m_TempSOMs;
 
 
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
+
+
 
 
         private Queue<Packet> m_RecvQ;
@@ -43,11 +47,17 @@ namespace Konline.Scripts.Serilization {
 
         }
 
-        public int GiveNetworkID()
+        public void GetNetworkID(SerializableObject serializableObject)
         {
-            int netID = m_NextAvalibleID;
-            m_NextAvalibleID++;
-            return netID;
+            serializableObject.NetworkID = m_TempID;
+            m_TempID++;
+            m_TempSOs.Add(serializableObject.NetworkID, serializableObject);
+        }
+        public void GetNetworkID(SerializableObjectMono serializableObject)
+        {
+            serializableObject.NetworkID = m_TempID;
+            m_TempID++;
+            m_TempSOMs.Add(serializableObject.NetworkID, serializableObject);
         }
 
         public void TrackNetID(SerializableObject obj)

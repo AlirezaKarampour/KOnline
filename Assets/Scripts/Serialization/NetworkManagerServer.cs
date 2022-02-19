@@ -40,6 +40,13 @@ namespace Konline.Scripts.Serilization
 
         }
 
+        private void AnalyzePacket()
+        {
+
+        }
+
+
+
         public int GiveNetworkID()
         {
             int netID = m_NextAvalibleID;

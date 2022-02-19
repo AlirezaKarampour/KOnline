@@ -27,8 +27,8 @@ namespace Konline.Scripts.Serilization
 #if !SERVER_BUILD
         public SerializableObject()
         {
-            NetworkID = NetworkManagerClient.Instance.GiveNetworkID();
-            NetworkManagerClient.Instance.TrackNetID(this);
+            NetworkManagerClient.Instance.GetNetworkID(this);
+            
             
 
             ClassID = this.GetType().Name;
@@ -62,8 +62,8 @@ namespace Konline.Scripts.Serilization
         private void Awake()
         {
 #if !SERVER_BUILD
-            NetworkID = NetworkManagerClient.Instance.GiveNetworkID();
-            NetworkManagerClient.Instance.TrackNetID(this);
+            NetworkManagerClient.Instance.GetNetworkID(this);
+            
             
 
             ClassID = this.GetType().Name;
