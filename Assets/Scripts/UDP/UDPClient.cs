@@ -22,6 +22,7 @@ namespace Konline.Scripts.UDP
 
         private void Awake()
         {
+            m_SendQ = new Queue<Packet>();
             m_ClientSOCK = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             m_ClientSOCK.DontFragment = true;
         }
@@ -50,6 +51,8 @@ namespace Konline.Scripts.UDP
         {
             StateObject so = new StateObject(1500);
             so.Socket = m_ClientSOCK;
+            IPEndPoint remoteIPEP = new IPEndPoint(IPAddress.Any, 0);
+            so.UDP_RemoteEP = (EndPoint)remoteIPEP;
             m_ClientSOCK.BeginReceiveFrom(so.buffer, 0, so.buffer.Length, SocketFlags.None, ref so.UDP_RemoteEP, RecvCB, so);
         }
 

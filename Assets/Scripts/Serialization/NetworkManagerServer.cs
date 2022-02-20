@@ -45,7 +45,7 @@ namespace Konline.Scripts.Serilization
 
         private void AnalyzePacket()
         {
-            if (m_RecvQ.Count > 0)
+            while(m_RecvQ.Count > 0)
             {
                 Packet packet = m_RecvQ.Dequeue();
                 if(packet.PacketType == PacketType.Create)

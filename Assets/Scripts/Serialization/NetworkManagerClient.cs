@@ -32,7 +32,8 @@ namespace Konline.Scripts.Serilization {
         {
             base.Awake();
             Debug.Log("Client");
-            
+
+            m_RecvQ = new Queue<Packet>();
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
 
@@ -55,7 +56,7 @@ namespace Konline.Scripts.Serilization {
 
         private void AnalyzePacket()
         {
-            if(m_RecvQ.Count > 0)
+            while(m_RecvQ.Count > 0)
             {
                 Packet packet = m_RecvQ.Dequeue();
                 if(packet.PacketType == PacketType.Create)
