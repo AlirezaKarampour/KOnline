@@ -1,6 +1,9 @@
 #if SERVER_BUILD
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System;
 using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
@@ -37,12 +40,51 @@ namespace Konline.Scripts.Serilization
         // Update is called once per frame
         void Update()
         {
-
+            AnalyzePacket();
         }
 
         private void AnalyzePacket()
         {
+            if (m_RecvQ.Count > 0)
+            {
+                Packet packet = m_RecvQ.Dequeue();
+                if(packet.PacketType == PacketType.Create)
+                {
+                    string ClassID;
+                    int tempNetID;
+                    using(MemoryStream ms = new MemoryStream())
+                    {
+                        ms.Write(packet.Payload, 0, packet.Payload.Length);
+                        ms.Position = 0;
+                        using(BinaryReader br = new BinaryReader(ms ,Encoding.UTF8))
+                        {
+                            ClassID = br.ReadString();
+                            tempNetID = br.ReadInt32();
+                        }
+                    }
 
+                    Type type = Type.GetType(ClassID);
+                    object obj = Activator.CreateInstance(type);
+                    SerializableObject SO = (SerializableObject)obj;
+                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
+                    byte[] payload;
+                    using(MemoryStream ms = new MemoryStream())
+                    {
+                        ms.Write(answer.Payload, 0, answer.Payload.Length);
+                        using(BinaryWriter bw = new BinaryWriter(ms , Encoding.UTF8))
+                        {
+                            bw.Write(tempNetID);
+                        }
+                        payload = ms.ToArray();
+                    }
+
+                    answer.Payload = payload;
+                    AddToSendQueue(answer);
+                    
+                }
+
+
+            }
         }
 
 

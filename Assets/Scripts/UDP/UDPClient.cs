@@ -72,7 +72,7 @@ namespace Konline.Scripts.UDP
                     {
                         packet.RemoteEP = (IPEndPoint)so.UDP_RemoteEP;
                     }
-                    Packet.UnPack(packet, data);
+                    Packet.BytesToPacket(packet, data);
 
                     NetworkManagerClient.Instance.AddToRecvQueue(packet);
 
@@ -115,13 +115,17 @@ namespace Konline.Scripts.UDP
             m_IsSending = false;
         }
 
+        public void AddToSendQueue(Packet Packet)
+        {
+            m_SendQ.Enqueue(Packet);
+        }
 
         private StateObject MakeStateObject(Socket soSocket)
         {
             if (m_SendQ.Count > 0)
             {
                 Packet packet = m_SendQ.Dequeue();
-                byte[] data = Packet.Pack(packet);
+                byte[] data = Packet.PacketToBytes(packet);
                 StateObject so = new StateObject(1500);
                 so.Socket = soSocket;
                 so.buffer = data;

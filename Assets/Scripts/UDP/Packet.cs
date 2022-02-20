@@ -1,8 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
+using System.Text;
 using UnityEngine;
 using System.Net;
 using System.IO;
+using Konline.Scripts.Serilization;
 
 namespace Konline.Scripts.UDP
 {
@@ -22,15 +25,38 @@ namespace Konline.Scripts.UDP
 
         public Packet()
         {
-
         }
-        public Packet(PacketType packetType , byte[] payload)
+
+        //Create
+        public Packet(string address, int port, SerializableObject SO)
         {
-            this.PacketType = packetType;
+            this.PacketType = PacketType.Create;
+            IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
+            this.RemoteEP = EP;
+            byte[] payload;
+
+            using(MemoryStream ms = new MemoryStream())
+            {
+                using(BinaryWriter bw = new BinaryWriter(ms , Encoding.UTF8))
+                {
+                    bw.Write(SO.ClassID);
+                    bw.Write(SO.NetworkID);
+                }
+                payload = ms.ToArray();
+            }
             this.Payload = payload;
         }
 
-        public static byte[] Pack(Packet packet)
+        //Update
+        public Packet(string address, int port, byte[] payload)
+        {
+            this.PacketType = PacketType.Update;
+            this.Payload = payload;
+            IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
+            this.RemoteEP = EP;
+        }
+
+        public static byte[] PacketToBytes(Packet packet)
         {
             using(MemoryStream ms = new MemoryStream())
             {
@@ -43,8 +69,10 @@ namespace Konline.Scripts.UDP
             }
         }
 
+        
 
-        public static void UnPack(Packet packet , byte[] data)
+
+        public static void BytesToPacket(Packet packet , byte[] data)
         {
             using(MemoryStream ms = new MemoryStream())
             {
@@ -53,10 +81,9 @@ namespace Konline.Scripts.UDP
                 using(BinaryReader br = new BinaryReader(ms))
                 {
                     PacketType packetType = (PacketType)br.ReadInt32();
-                    byte[] payload = br.ReadBytes((int)(ms.Length - sizeof(PacketType)));
                     packet.PacketType = packetType;
+                    byte[] payload = br.ReadBytes((int)(ms.Length - sizeof(PacketType)));
                     packet.Payload = payload;
-                    
                 }
             }
 

@@ -15,34 +15,28 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
 
-        
+
 
 #if SERVER_BUILD
-       
-
-
+        public SerializableObject()
+        {
+            ClassID = this.GetType().Name;
+            NetworkManagerServer.Instance.GiveNetworkID();
+            NetworkManagerServer.Instance.TrackNetID(this);
+        }
 #endif
 
 
 #if !SERVER_BUILD
         public SerializableObject()
         {
-            NetworkManagerClient.Instance.GetNetworkID(this);
-            
-            
-
             ClassID = this.GetType().Name;
+            NetworkManagerClient.Instance.GetNetworkID(this);
         }
 #endif
 
-#if SERVER_BUILD
-        public SerializableObject()
-        {
             
-        }
 
-            
-#endif
     }
 
     public abstract class SerializableObjectMono : MonoBehaviour
