@@ -15,7 +15,7 @@ namespace Konline.Scripts.Serilization {
         public const string SERVER_ADDR = "127.0.0.1";
         public const int SERVER_PORT = 15000;
 
-        private int m_TempID = 0;
+        private int m_TempID = 20;
         private Dictionary<int, SerializableObject> m_TempSOs;
         private Dictionary<int, SerializableObjectMono> m_TempSOMs;
 
@@ -34,6 +34,7 @@ namespace Konline.Scripts.Serilization {
             Debug.Log("Client");
 
             m_RecvQ = new Queue<Packet>();
+            m_TempSOs = new Dictionary<int, SerializableObject>();
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
 
@@ -43,8 +44,10 @@ namespace Konline.Scripts.Serilization {
         // Start is called before the first frame update
         void Start()
         {
-
-            
+            Human h = new Human("alireza" , 23);
+            Human h2 = new Human();
+            Debug.Log(h.NetworkID);
+            Debug.Log(h2.NetworkID);
 
         }
 
@@ -52,6 +55,8 @@ namespace Konline.Scripts.Serilization {
         void Update()
         {
             AnalyzePacket();
+
+            
         }
 
         private void AnalyzePacket()
@@ -75,9 +80,20 @@ namespace Konline.Scripts.Serilization {
                             tempNetID = br.ReadInt32();
                         }
                     }
-                    SerializableObject SO = m_TempSOs[tempNetID];
-                    SO.NetworkID = NetID;
-                    TrackNetID(SO);
+                    if (tempNetID != 0)
+                    {
+                        SerializableObject SO = m_TempSOs[tempNetID];
+                        SO.NetworkID = NetID;
+                        TrackNetID(SO);
+                        Debug.Log(SO.NetworkID);
+                    }
+                    else
+                    {
+                        Type type = Type.GetType(ClassID);
+                        object obj = Activator.CreateInstance(type,new object[] {NetID});
+                        SerializableObject SO = (SerializableObject)obj;
+                        TrackNetID(SO);
+                    }
                 }
             }
         }

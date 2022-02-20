@@ -21,7 +21,7 @@ namespace Konline.Scripts.Serilization
         public SerializableObject()
         {
             ClassID = this.GetType().Name;
-            NetworkManagerServer.Instance.GiveNetworkID();
+            NetworkID = NetworkManagerServer.Instance.GiveNetworkID();
             NetworkManagerServer.Instance.TrackNetID(this);
         }
 #endif
@@ -32,6 +32,13 @@ namespace Konline.Scripts.Serilization
         {
             ClassID = this.GetType().Name;
             NetworkManagerClient.Instance.GetNetworkID(this);
+        }
+
+        public SerializableObject(int NetID)
+        {
+            ClassID = this.GetType().Name;
+            this.NetworkID = NetID;
+            
         }
 #endif
 

@@ -15,7 +15,7 @@ namespace Konline.Scripts.Serilization
     {
         [SerializeField] private UDPServer m_Server;
 
-        private int m_NextAvalibleID = 0;
+        private int m_NextAvalibleID = 10;
 
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;

@@ -502,7 +502,9 @@ namespace Konline.Scripts.Serilization
 #endif
 
 #if SERVER_BUILD
-                    
+                    int key = br.ReadInt32();
+                    SerializableObject refObj = NetworkManagerServer.Instance.SerializableObjects[key];
+                    fieldInfo.SetValue(obj, refObj);
 
 #endif
                 }
@@ -565,7 +567,7 @@ namespace Konline.Scripts.Serilization
 #endif
 #if SERVER_BUILD
 
-
+                            serObjs[i] = NetworkManagerServer.Instance.SerializableObjects[networkIDs[i]];
 
 
 #endif
