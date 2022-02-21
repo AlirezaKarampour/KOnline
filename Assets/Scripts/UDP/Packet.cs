@@ -47,6 +47,27 @@ namespace Konline.Scripts.UDP
             this.Payload = payload;
         }
 
+        public Packet(string address, int port, SerializableObjectMono SOM)
+        {
+            this.PacketType = PacketType.Create;
+            IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
+            this.RemoteEP = EP;
+            byte[] payload;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8))
+                {
+                    bw.Write(SOM.ClassID);
+                    bw.Write(SOM.NetworkID);
+                }
+                payload = ms.ToArray();
+            }
+            this.Payload = payload;
+        }
+
+
+
         //Update
         public Packet(string address, int port, byte[] payload)
         {

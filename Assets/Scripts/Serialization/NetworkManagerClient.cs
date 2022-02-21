@@ -44,10 +44,7 @@ namespace Konline.Scripts.Serilization {
         // Start is called before the first frame update
         void Start()
         {
-            Human h = new Human("alireza" , 23);
-            Human h2 = new Human();
-            Debug.Log(h.NetworkID);
-            Debug.Log(h2.NetworkID);
+            
 
         }
 
@@ -112,12 +109,7 @@ namespace Konline.Scripts.Serilization {
         }
 
         //needs to be compeleted!
-        public void GetNetworkID(SerializableObjectMono serializableObject)
-        {
-            serializableObject.NetworkID = m_TempID;
-            m_TempID++;
-            m_TempSOMs.Add(serializableObject.NetworkID, serializableObject);
-        }
+        
 
 
 

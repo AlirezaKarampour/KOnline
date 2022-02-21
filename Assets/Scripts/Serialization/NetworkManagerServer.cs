@@ -64,22 +64,31 @@ namespace Konline.Scripts.Serilization
                     }
 
                     Type type = Type.GetType(ClassID);
-                    object obj = Activator.CreateInstance(type);
-                    SerializableObject SO = (SerializableObject)obj;
-                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
-                    byte[] payload;
-                    using(MemoryStream ms = new MemoryStream())
+                    if (type.IsSubclassOf(typeof(SerializableObject)))
                     {
-                        ms.Write(answer.Payload, 0, answer.Payload.Length);
-                        using(BinaryWriter bw = new BinaryWriter(ms , Encoding.UTF8))
+                        object obj = Activator.CreateInstance(type);
+                        SerializableObject SO = (SerializableObject)obj;
+                        Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
+                        byte[] payload;
+                        using (MemoryStream ms = new MemoryStream())
                         {
-                            bw.Write(tempNetID);
+                            ms.Write(answer.Payload, 0, answer.Payload.Length);
+                            using (BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8))
+                            {
+                                bw.Write(tempNetID);
+                            }
+                            payload = ms.ToArray();
                         }
-                        payload = ms.ToArray();
-                    }
 
-                    answer.Payload = payload;
-                    AddToSendQueue(answer);
+                        answer.Payload = payload;
+                        AddToSendQueue(answer);
+                    }else if (type.IsSubclassOf(typeof(SerializableObjectMono)))
+                    {
+
+
+
+
+                    }
                     
                 }
 

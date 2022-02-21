@@ -55,25 +55,18 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
 
-#if SERVER_BUILD
-       
 
-
-#endif
         private void Awake()
         {
 #if !SERVER_BUILD
-            NetworkManagerClient.Instance.GetNetworkID(this);
-            
-            
 
-            ClassID = this.GetType().Name;
+
+
 #endif
 #if SERVER_BUILD
-
-            
-
-
+            ClassID = this.GetType().Name;
+            NetworkID = NetworkManagerServer.Instance.GiveNetworkID();
+            NetworkManagerServer.Instance.TrackNetID(this);
 #endif
         }
 

@@ -104,7 +104,7 @@ namespace Konline.Scripts.Serilization
             if (fieldType.IsGenericType)
             {
                 fieldType = fieldType.GetGenericTypeDefinition();
-                Debug.Log("not implemented yet !");
+                Debug.Log("generics are not implemented yet !");
                 return null;
             }
 
@@ -185,8 +185,8 @@ namespace Konline.Scripts.Serilization
 
                                     if (element is SerializableObject)
                                     {
-                                        SerializableObject serObj = (SerializableObject)element;
-                                        bw.Write(serObj.NetworkID);
+                                        SerializableObject so = (SerializableObject)element;
+                                        bw.Write(so.NetworkID);
                                     }
                                     else if (element is SerializableObjectMono)
                                     {
@@ -318,10 +318,22 @@ namespace Konline.Scripts.Serilization
 #endif
 
 #if SERVER_BUILD
+                    int key = br.ReadInt32();
+                    SerializableObject refObj = NetworkManagerServer.Instance.SerializableObjects[key];
+                    fieldInfo.SetValue(obj, refObj);
+#endif
+                }else if (fieldType.IsSubclassOf(typeof(SerializableObjectMono)))
+                {
+#if !SERVER_BUILD
+                    int key = br.ReadInt32();
+                    SerializableObjectMono refObj = NetworkManagerClient.Instance.SerializableObjectMonos[key];
+                    fieldInfo.SetValue(obj, refObj); 
+#endif
 
-
-
-
+#if SERVER_BUILD
+                    int key = br.ReadInt32();
+                    SerializableObjectMono refObj = NetworkManagerServer.Instance.SerializableObjectMonos[key];
+                    fieldInfo.SetValue(obj, refObj);
 #endif
                 }
             }
@@ -349,9 +361,9 @@ namespace Konline.Scripts.Serilization
             {
                 int len = br.ReadInt32();
                 string elementTypeName = br.ReadString();
+                Type elementType = Type.GetType(elementTypeName);
 
-
-                if (elementTypeName == typeof(SerializableObject).Name)
+                if (elementType.IsSubclassOf(typeof(SerializableObject)))
                 {
                     int[] networkIDs = new int[len];
                     SerializableObject[] serObjs = new SerializableObject[len];
@@ -367,16 +379,35 @@ namespace Konline.Scripts.Serilization
                         serObjs[i] = NetworkManagerClient.Instance.SerializableObjects[networkIDs[i]];
 #endif
 #if SERVER_BUILD
-
-                        
-
-
+                        serObjs[i] = NetworkManagerServer.Instance.SerializableObjects[networkIDs[i]];
 #endif
 
                     }
 
                     fieldInfo.SetValue(obj, serObjs);
 
+                }else if(elementType.IsSubclassOf(typeof(SerializableObjectMono)))
+                {
+                    int[] networkIDs = new int[len];
+                    SerializableObjectMono[] serObjs = new SerializableObjectMono[len];
+
+                    for (int i = 0; i < len; i++)
+                    {
+                        networkIDs[i] = br.ReadInt32();
+                    }
+
+                    for (int i = 0; i < len; i++)
+                    {
+#if !SERVER_BUILD
+                        serObjs[i] = NetworkManagerClient.Instance.SerializableObjectMonos[networkIDs[i]];
+#endif
+#if SERVER_BUILD
+                        serObjs[i] = NetworkManagerServer.Instance.SerializableObjectMonos[networkIDs[i]];
+#endif
+
+                    }
+
+                    fieldInfo.SetValue(obj, serObjs);
                 }
 
 
@@ -519,7 +550,9 @@ namespace Konline.Scripts.Serilization
 #endif
 
 #if SERVER_BUILD
-                        
+                        int key = br.ReadInt32();
+                        SerializableObjectMono refObj = NetworkManagerServer.Instance.SerializableObjectMonos[key];
+                        fieldInfo.SetValue(obj, refObj);
 
 #endif
                     }
@@ -593,10 +626,7 @@ namespace Konline.Scripts.Serilization
                             serObjs[i] = NetworkManagerClient.Instance.SerializableObjectMonos[networkIDs[i]];
 #endif
 #if SERVER_BUILD
-
-
-
-
+                            serObjs[i] = NetworkManagerServer.Instance.SerializableObjectMonos[networkIDs[i]];
 #endif
 
                         }
