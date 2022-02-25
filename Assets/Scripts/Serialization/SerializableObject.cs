@@ -49,18 +49,24 @@ namespace Konline.Scripts.Serilization
     public abstract class SerializableObjectMono : MonoBehaviour
     {
         [Shared]
+        public string PrefabName;
+
+        [Shared]
         public int NetworkID;
 
         [HideInInspector] 
         [Shared]
         public string ClassID;
 
+       
+
 
         private void Awake()
         {
 #if !SERVER_BUILD
 
-
+            ClassID = this.GetType().Name;
+            
 
 #endif
 #if SERVER_BUILD

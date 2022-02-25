@@ -8,12 +8,14 @@ using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using Konline.Scripts.UDP;
+using Konline.Scripts.ObjectReplication;
 
 namespace Konline.Scripts.Serilization
 {
     public class NetworkManagerServer : GenericSingleton<NetworkManagerServer>
     {
         [SerializeField] private UDPServer m_Server;
+        [SerializeField] private ClassStorage m_ClassStorage;
 
         private int m_NextAvalibleID = 10;
 
@@ -25,6 +27,8 @@ namespace Konline.Scripts.Serilization
         public override void Awake()
         {
             base.Awake();
+            m_ClassStorage.Init();
+
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
             m_RecvQ = new Queue<Packet>();
@@ -50,44 +54,64 @@ namespace Konline.Scripts.Serilization
                 Packet packet = m_RecvQ.Dequeue();
                 if(packet.PacketType == PacketType.Create)
                 {
-                    string ClassID;
-                    int tempNetID;
-                    using(MemoryStream ms = new MemoryStream())
+                    bool isSO;
+                    
+                    using (MemoryStream ms = new MemoryStream())
                     {
                         ms.Write(packet.Payload, 0, packet.Payload.Length);
                         ms.Position = 0;
-                        using(BinaryReader br = new BinaryReader(ms ,Encoding.UTF8))
+                        using (BinaryReader br = new BinaryReader(ms, Encoding.UTF8))
                         {
-                            ClassID = br.ReadString();
-                            tempNetID = br.ReadInt32();
-                        }
-                    }
+                            isSO = br.ReadBoolean();
 
-                    Type type = Type.GetType(ClassID);
-                    if (type.IsSubclassOf(typeof(SerializableObject)))
-                    {
-                        object obj = Activator.CreateInstance(type);
-                        SerializableObject SO = (SerializableObject)obj;
-                        Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
-                        byte[] payload;
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            ms.Write(answer.Payload, 0, answer.Payload.Length);
-                            using (BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8))
+                            if (isSO)
                             {
-                                bw.Write(tempNetID);
+                                string ClassID;
+                                int tempNetID;
+
+                                ClassID = br.ReadString();
+                                tempNetID = br.ReadInt32();
+
+                                Type type = Type.GetType(ClassID);
+
+
+                                
+                                object obj = Activator.CreateInstance(type);
+                                SerializableObject SO = (SerializableObject)obj;
+                                Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
+                                byte[] payload;
+                                using (MemoryStream ms1 = new MemoryStream())
+                                {
+                                    ms1.Write(answer.Payload, 0, answer.Payload.Length);
+                                    using (BinaryWriter bw = new BinaryWriter(ms1, Encoding.UTF8))
+                                    {
+                                        bw.Write(tempNetID);
+                                    }
+                                    payload = ms1.ToArray();
+                                }
+
+                                answer.Payload = payload;
+                                AddToSendQueue(answer);
+
                             }
-                            payload = ms.ToArray();
+                            else
+                            {
+                                string prefabName = br.ReadString();
+                                GameObject prefab = m_ClassStorage.GiveServerPrefab(prefabName);
+                                GameObject gameObject = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
+                                SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
+                                if (SOMs.Length > 0)
+                                {
+
+                                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SOMs);
+                                    AddToSendQueue(answer);
+                                }
+                                else
+                                {
+                                    Destroy(gameObject);
+                                }
+                            }
                         }
-
-                        answer.Payload = payload;
-                        AddToSendQueue(answer);
-                    }else if (type.IsSubclassOf(typeof(SerializableObjectMono)))
-                    {
-
-
-
-
                     }
                     
                 }

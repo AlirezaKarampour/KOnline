@@ -5,11 +5,13 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using Konline.Scripts.UDP;
+using Konline.Scripts.ObjectReplication;
 using System;
 
 namespace Konline.Scripts.Serilization {
     public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
     {
+        [SerializeField] private ClassStorage m_ClassStorage;
         [SerializeField] private UDPClient m_Client;
 
         public const string SERVER_ADDR = "127.0.0.1";
@@ -32,6 +34,7 @@ namespace Konline.Scripts.Serilization {
         {
             base.Awake();
             Debug.Log("Client");
+            m_ClassStorage.Init();
 
             m_RecvQ = new Queue<Packet>();
             m_TempSOs = new Dictionary<int, SerializableObject>();
@@ -44,7 +47,7 @@ namespace Konline.Scripts.Serilization {
         // Start is called before the first frame update
         void Start()
         {
-            
+            SendCreateRequest("Player");
 
         }
 
@@ -63,33 +66,62 @@ namespace Konline.Scripts.Serilization {
                 Packet packet = m_RecvQ.Dequeue();
                 if(packet.PacketType == PacketType.Create)
                 {
-                    string ClassID;
-                    int NetID;
-                    int tempNetID;
-                    using(MemoryStream ms = new MemoryStream())
+                    bool isSO;
+
+                    using (MemoryStream ms = new MemoryStream())
                     {
                         ms.Write(packet.Payload, 0, packet.Payload.Length);
                         ms.Position = 0;
-                        using(BinaryReader br = new BinaryReader(ms , Encoding.UTF8))
+                        using (BinaryReader br = new BinaryReader(ms, Encoding.UTF8))
                         {
-                            ClassID = br.ReadString();
-                            NetID = br.ReadInt32();
-                            tempNetID = br.ReadInt32();
+                            isSO = br.ReadBoolean();
+                            if (isSO)
+                            {
+                                string ClassID;
+                                int NetID;
+                                int tempNetID;
+
+                                ClassID = br.ReadString();
+                                NetID = br.ReadInt32();
+                                tempNetID = br.ReadInt32();
+
+                                if (tempNetID != 0)
+                                {
+                                    SerializableObject SO = m_TempSOs[tempNetID];
+                                    SO.NetworkID = NetID;
+                                    TrackNetID(SO);
+                                    Debug.Log(SO.NetworkID);
+                                }
+                                else
+                                {
+                                    Type type = Type.GetType(ClassID);
+                                    object obj = Activator.CreateInstance(type, new object[] { NetID });
+                                    SerializableObject SO = (SerializableObject)obj;
+                                    TrackNetID(SO);
+                                }
+                            }
+                            else
+                            {
+                                string prefabName = br.ReadString();
+                                GameObject prefab = m_ClassStorage.GiveClientPrefab(prefabName);
+                                GameObject gameObject = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
+                                SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
+                                if(SOMs.Length > 0)
+                                {
+                                    foreach(SerializableObjectMono SOM in SOMs)
+                                    {
+                                        SOM.NetworkID = br.ReadInt32();
+                                        Debug.Log(SOM.NetworkID);
+                                    }
+                                }
+                                else
+                                {
+                                    Destroy(gameObject);
+                                }
+                                
+                                
+                            }
                         }
-                    }
-                    if (tempNetID != 0)
-                    {
-                        SerializableObject SO = m_TempSOs[tempNetID];
-                        SO.NetworkID = NetID;
-                        TrackNetID(SO);
-                        Debug.Log(SO.NetworkID);
-                    }
-                    else
-                    {
-                        Type type = Type.GetType(ClassID);
-                        object obj = Activator.CreateInstance(type,new object[] {NetID});
-                        SerializableObject SO = (SerializableObject)obj;
-                        TrackNetID(SO);
                     }
                 }
             }
@@ -109,8 +141,29 @@ namespace Konline.Scripts.Serilization {
         }
 
         //needs to be compeleted!
-        
+        //public void GetNetworkID(SerializableObjectMono serializableObject)
+        //{
+        //    serializableObject.NetworkID = m_TempID;
+        //    m_TempID++;
+        //    m_TempSOMs.Add(serializableObject.NetworkID, serializableObject);
 
+        //    Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, serializableObject);
+        //    m_Client.AddToSendQueue(packet);
+
+        //}
+
+        public void SendCreateRequest(string prefabName)
+        {
+            if (m_ClassStorage.HasPrefab(prefabName))
+            {
+                Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, prefabName);
+                m_Client.AddToSendQueue(packet);
+            }
+            else
+            {
+                Debug.LogError("prefab doesn't exist");
+            }
+        }
 
 
         public void TrackNetID(SerializableObject obj)

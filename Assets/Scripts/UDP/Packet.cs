@@ -34,11 +34,13 @@ namespace Konline.Scripts.UDP
             IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
             this.RemoteEP = EP;
             byte[] payload;
+            bool isSO = true;
 
             using(MemoryStream ms = new MemoryStream())
             {
                 using(BinaryWriter bw = new BinaryWriter(ms , Encoding.UTF8))
                 {
+                    bw.Write(isSO);
                     bw.Write(SO.ClassID);
                     bw.Write(SO.NetworkID);
                 }
@@ -47,19 +49,45 @@ namespace Konline.Scripts.UDP
             this.Payload = payload;
         }
 
-        public Packet(string address, int port, SerializableObjectMono SOM)
+        public Packet(string address, int port, string prefabName)
         {
             this.PacketType = PacketType.Create;
             IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
             this.RemoteEP = EP;
             byte[] payload;
-
+            bool isSO = false;
+            
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8))
                 {
-                    bw.Write(SOM.ClassID);
-                    bw.Write(SOM.NetworkID);
+                    bw.Write(isSO);
+                    bw.Write(prefabName);
+                }
+                payload = ms.ToArray();
+            }
+            this.Payload = payload;
+            
+        }
+
+        public Packet(string address, int port, SerializableObjectMono[] SOMs)
+        {
+            this.PacketType = PacketType.Create;
+            IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
+            this.RemoteEP = EP;
+            byte[] payload;
+            bool isSO = false;
+
+            using(MemoryStream ms = new MemoryStream())
+            {
+                using(BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8))
+                {
+                    bw.Write(isSO);
+                    bw.Write(SOMs[0].PrefabName);
+                    foreach(SerializableObjectMono obj in SOMs)
+                    {
+                        bw.Write(obj.NetworkID);
+                    }
                 }
                 payload = ms.ToArray();
             }
