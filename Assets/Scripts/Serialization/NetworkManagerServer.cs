@@ -97,13 +97,14 @@ namespace Konline.Scripts.Serilization
                             else
                             {
                                 string prefabName = br.ReadString();
+                                int tempID = br.ReadInt32();
                                 GameObject prefab = m_ClassStorage.GiveServerPrefab(prefabName);
                                 GameObject gameObject = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
                                 SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
                                 if (SOMs.Length > 0)
                                 {
 
-                                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SOMs);
+                                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SOMs , tempID);
                                     AddToSendQueue(answer);
                                 }
                                 else

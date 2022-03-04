@@ -7,6 +7,7 @@ using UnityEngine;
 using Konline.Scripts.UDP;
 using Konline.Scripts.ObjectReplication;
 using System;
+using System.Threading.Tasks;
 
 namespace Konline.Scripts.Serilization {
     public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
@@ -19,13 +20,14 @@ namespace Konline.Scripts.Serilization {
 
         private int m_TempID = 20;
         private Dictionary<int, SerializableObject> m_TempSOs;
-        private Dictionary<int, SerializableObjectMono> m_TempSOMs;
+        private Dictionary<int, GameObject> m_TempPrefabs;
 
 
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
 
 
+        
 
 
         private Queue<Packet> m_RecvQ;
@@ -40,15 +42,20 @@ namespace Konline.Scripts.Serilization {
             m_TempSOs = new Dictionary<int, SerializableObject>();
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
+            m_TempPrefabs = new Dictionary<int, GameObject>();
 
             
         }
 
         // Start is called before the first frame update
-        void Start()
+        async void Start()
         {
-            SendCreateRequest("Player");
-
+            GameObject obj = await SendCreateRequest("Player");
+            Player player = obj.GetComponent<Player>();
+            if(player != null)
+            {
+                Debug.Log(player.NetworkID);
+            }
         }
 
         // Update is called once per frame
@@ -103,6 +110,7 @@ namespace Konline.Scripts.Serilization {
                             else
                             {
                                 string prefabName = br.ReadString();
+                                int tempID = br.ReadInt32();
                                 GameObject prefab = m_ClassStorage.GiveClientPrefab(prefabName);
                                 GameObject gameObject = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
                                 SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
@@ -113,6 +121,7 @@ namespace Konline.Scripts.Serilization {
                                         SOM.NetworkID = br.ReadInt32();
                                         Debug.Log(SOM.NetworkID);
                                     }
+                                    m_TempPrefabs.Add(tempID, gameObject);
                                 }
                                 else
                                 {
@@ -140,6 +149,13 @@ namespace Konline.Scripts.Serilization {
 
         }
 
+        public int GetTempID()
+        {
+            int id = m_TempID;
+            m_TempID++;
+            return id;
+        }
+
         //needs to be compeleted!
         //public void GetNetworkID(SerializableObjectMono serializableObject)
         //{
@@ -152,17 +168,26 @@ namespace Konline.Scripts.Serilization {
 
         //}
 
-        public void SendCreateRequest(string prefabName)
+        public async Task<GameObject> SendCreateRequest(string prefabName)
         {
+            int tempID = GetTempID();
+
             if (m_ClassStorage.HasPrefab(prefabName))
             {
-                Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, prefabName);
+                Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, prefabName , tempID);
                 m_Client.AddToSendQueue(packet);
             }
             else
             {
                 Debug.LogError("prefab doesn't exist");
             }
+
+            while(m_TempPrefabs.ContainsKey(tempID) == false)
+            {
+                await Task.Yield();
+            }
+
+            return m_TempPrefabs[tempID];
         }
 
 

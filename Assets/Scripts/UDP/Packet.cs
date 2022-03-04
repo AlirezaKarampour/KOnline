@@ -49,7 +49,7 @@ namespace Konline.Scripts.UDP
             this.Payload = payload;
         }
 
-        public Packet(string address, int port, string prefabName)
+        public Packet(string address, int port, string prefabName , int tempID)
         {
             this.PacketType = PacketType.Create;
             IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
@@ -63,6 +63,7 @@ namespace Konline.Scripts.UDP
                 {
                     bw.Write(isSO);
                     bw.Write(prefabName);
+                    bw.Write(tempID);
                 }
                 payload = ms.ToArray();
             }
@@ -70,7 +71,7 @@ namespace Konline.Scripts.UDP
             
         }
 
-        public Packet(string address, int port, SerializableObjectMono[] SOMs)
+        public Packet(string address, int port, SerializableObjectMono[] SOMs , int tempID)
         {
             this.PacketType = PacketType.Create;
             IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
@@ -84,6 +85,7 @@ namespace Konline.Scripts.UDP
                 {
                     bw.Write(isSO);
                     bw.Write(SOMs[0].PrefabName);
+                    bw.Write(tempID);
                     foreach(SerializableObjectMono obj in SOMs)
                     {
                         bw.Write(obj.NetworkID);
