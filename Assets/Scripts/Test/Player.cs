@@ -6,5 +6,4 @@ using Konline.Scripts.Serilization;
 public partial class Player : SerializableObjectMono
 {
     
-
 }

@@ -14,11 +14,17 @@ namespace Konline.Scripts.UDP
 {
     public class UDPClient : MonoBehaviour
     {
+        public int TickRate = 60;
+        public int Delay = 100;
+
         private Socket m_ClientSOCK;
         private Queue<Packet> m_SendQ;
 
         private bool m_IsSending = false;
         private bool m_ShouldSend = true;
+
+
+        public static event Action OnClientTick;
 
         private void Awake()
         {
@@ -88,24 +94,36 @@ namespace Konline.Scripts.UDP
 
         private async void StartSendLoop()
         {
+            float timer = 0f;
             while (m_ShouldSend)
             {
-                if (m_SendQ.Count > 0)
+                timer += Time.deltaTime * 1000;
+
+                if (timer >= (1000 / TickRate))
                 {
-                    if (m_IsSending == false)
+                    OnClientTick?.Invoke();
+
+                    if (m_SendQ.Count > 0)
                     {
-                        StateObject so = MakeStateObject(m_ClientSOCK);
-                        m_ClientSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
-                        m_IsSending = true;
+                        if (m_IsSending == false)
+                        {
+                            StateObject so = MakeStateObject(m_ClientSOCK);
+
+                            await Task.Delay(Delay);
+
+                            m_ClientSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
+                            m_IsSending = true;
+                            timer = 0;
+                        }
+                        else
+                        {
+                            await Task.Yield();
+                        }
                     }
                     else
                     {
                         await Task.Yield();
                     }
-                }
-                else
-                {
-                    await Task.Yield();
                 }
             }
         }

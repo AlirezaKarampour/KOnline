@@ -15,6 +15,7 @@ namespace Konline.Scripts.UDP
         Create,
         Update,
         Destroy,
+        ACK,
     }
 
     public class Packet

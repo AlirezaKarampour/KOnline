@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Net;
+using System.Threading.Tasks;
+using Konline.Scripts.UDP;
 
 namespace Konline.Scripts.Serilization
 {
@@ -42,7 +44,7 @@ namespace Konline.Scripts.Serilization
         }
 #endif
 
-            
+
 
     }
 
@@ -54,11 +56,11 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public int NetworkID;
 
-        [HideInInspector] 
+        [HideInInspector]
         [Shared]
         public string ClassID;
 
-       
+        
 
 
         private void Awake()
@@ -77,5 +79,44 @@ namespace Konline.Scripts.Serilization
         }
 
 
+
+
+#if !SERVER_BUILD
+        private void OnEnable()
+        {
+            UDPClient.OnClientTick += UpdateServer;
+        }
+
+        private void OnDisable()
+        {
+            UDPClient.OnClientTick -= UpdateServer;
+        }
+
+
+        protected virtual void UpdateServer()
+        {
+
+        }
+            
+
+#endif
+#if SERVER_BUILD
+        private void OnEnable()
+        {
+            UDPServer.OnServerTick += UpdateClient;
+        }
+        private void OnDisable()
+        {
+            UDPServer.OnServerTick -= UpdateClient;
+        }
+
+        protected virtual void UpdateClient()
+        {
+
+        }
+
+
+
+#endif
     }
 }
