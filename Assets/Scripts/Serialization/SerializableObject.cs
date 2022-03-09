@@ -95,7 +95,9 @@ namespace Konline.Scripts.Serilization
 
         protected virtual void UpdateServer()
         {
-
+            byte[] data = BinarySerializer.Serialize(this);
+            Packet packet = new Packet(NetworkManagerClient.SERVER_ADDR, NetworkManagerClient.SERVER_PORT, data);
+            NetworkManagerClient.Instance.AddToSendQueue(packet);
         }
             
 
@@ -112,7 +114,7 @@ namespace Konline.Scripts.Serilization
 
         protected virtual void UpdateClient()
         {
-
+            // finish this!
         }
 
 

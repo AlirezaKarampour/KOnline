@@ -133,6 +133,10 @@ namespace Konline.Scripts.Serilization {
                         }
                     }
                 }
+                else if(packet.PacketType == PacketType.Update)
+                {
+
+                }
             }
         }
 
@@ -204,6 +208,11 @@ namespace Konline.Scripts.Serilization {
         public void AddToRecvQueue(Packet packet)
         {
             m_RecvQ.Enqueue(packet);
+        }
+
+        public void AddToSendQueue(Packet packet)
+        {
+            m_Client.AddToSendQueue(packet);
         }
     }
 }

@@ -116,8 +116,10 @@ namespace Konline.Scripts.Serilization
                     }
                     
                 }
+                else if (packet.PacketType == PacketType.Update)
+                {
 
-
+                }
             }
         }
 
