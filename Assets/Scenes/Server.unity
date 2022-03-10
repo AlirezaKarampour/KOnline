@@ -432,6 +432,10 @@ PrefabInstance:
       propertyPath: Delay
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3555738178986575907, guid: 984316e936630ae48ac7bb2395929ce6, type: 3}
+      propertyPath: TickRate
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 5056659335682580497, guid: 984316e936630ae48ac7bb2395929ce6, type: 3}
       propertyPath: m_Name
       value: NetworkManagerServer

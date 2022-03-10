@@ -6,5 +6,8 @@ using Konline.Scripts.Serilization;
 public partial class Player : SerializableObjectMono
 {
     [Shared]
+    public float[] Position = new float[3];
+
+    [Shared]
     public bool m_AllowMove = false;
 }

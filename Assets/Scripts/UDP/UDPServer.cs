@@ -71,7 +71,8 @@ namespace Konline.Scripts.UDP
             while (m_ShouldSend)
             {
                 timer += Time.deltaTime * 1000;
-                if (timer >= (1000 / TickRate))
+                //timer >= (1000 / TickRate)
+                if (true)
                 {
                     OnServerTick?.Invoke();
 
@@ -81,7 +82,7 @@ namespace Konline.Scripts.UDP
                         {
                             StateObject so = MakeStateObject(m_ServerSOCK);
 
-                            await Task.Delay(Delay);
+                            //await Task.Delay(Delay);
 
                             m_ServerSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
                             m_IsSending = true;

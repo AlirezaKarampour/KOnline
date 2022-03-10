@@ -82,45 +82,14 @@ namespace Konline.Scripts.Serilization
 
 
 #if !SERVER_BUILD
-        private void OnEnable()
-        {
-            UDPClient.OnClientTick += UpdateServer;
-        }
-
-        private void OnDisable()
-        {
-            UDPClient.OnClientTick -= UpdateServer;
-        }
-
-
-        protected virtual void UpdateServer()
-        {
-            byte[] data = BinarySerializer.Serialize(this);
-            Packet packet = new Packet(NetworkManagerClient.SERVER_ADDR, NetworkManagerClient.SERVER_PORT, data);
-            NetworkManagerClient.Instance.AddToSendQueue(packet);
-        }
+        
             
 
 #endif
 #if SERVER_BUILD
-        private void OnEnable()
-        {
-            UDPServer.OnServerTick += UpdateClient;
-        }
-        private void OnDisable()
-        {
-            UDPServer.OnServerTick -= UpdateClient;
-        }
+        
 
-        protected virtual void UpdateClient()
-        {
-            byte[] data = BinarySerializer.Serialize(this);
-            foreach(KeyValuePair<IPAddress , int> entry in NetworkManagerServer.Instance.Clients)
-            {
-                Packet packet = new Packet(entry.Key.ToString(), entry.Value , data);
-                NetworkManagerServer.Instance.AddToSendQueue(packet);
-            }
-        }
+       
 
 
 

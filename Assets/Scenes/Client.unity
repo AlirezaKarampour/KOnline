@@ -439,6 +439,10 @@ PrefabInstance:
       propertyPath: Delay
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7980440839509417455, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
+      propertyPath: TickRate
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 8394280617093504480, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
       propertyPath: m_ClassStorage
       value: 
