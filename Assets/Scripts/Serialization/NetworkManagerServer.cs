@@ -19,16 +19,17 @@ namespace Konline.Scripts.Serilization
 
         private int m_NextAvalibleID = 10;
 
+        public Dictionary<IPAddress, int> Clients;
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
 
-        private Queue<Packet> m_RecvQ;
 
+        private Queue<Packet> m_RecvQ;
         public override void Awake()
         {
             base.Awake();
             m_ClassStorage.Init();
-
+            Clients = new Dictionary<IPAddress, int>();
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
             m_RecvQ = new Queue<Packet>();
@@ -118,7 +119,35 @@ namespace Konline.Scripts.Serilization
                 }
                 else if (packet.PacketType == PacketType.Update)
                 {
+                    string ClassID;
+                    int NetworkID;
 
+                    using(MemoryStream ms = new MemoryStream())
+                    {
+                        ms.Write(packet.Payload, 0, packet.Payload.Length);
+                        ms.Position = 0;
+
+                        using(BinaryReader br = new BinaryReader(ms , Encoding.UTF8))
+                        {
+                            ClassID = br.ReadString();
+                            NetworkID = br.ReadInt32();
+                            ms.Position = 0;
+                            Type type = Type.GetType(ClassID);
+                            if (type.IsSubclassOf(typeof(SerializableObject)))
+                            {
+                                BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+
+                            }
+                            else if (type.IsSubclassOf(typeof(SerializableObjectMono)))
+                            {
+                                BinarySerializer.Deserialize(SerializableObjectMonos[NetworkID], ms.ToArray());
+                            }
+                        }
+                    }
+                }
+                else if (packet.PacketType == PacketType.Hello)
+                {
+                    Clients.Add(packet.RemoteEP.Address, packet.RemoteEP.Port);
                 }
             }
         }

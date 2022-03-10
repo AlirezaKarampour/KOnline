@@ -63,7 +63,7 @@ namespace Konline.Scripts.Serilization
         
 
 
-        private void Awake()
+        protected virtual void Awake()
         {
 #if !SERVER_BUILD
 
@@ -114,7 +114,12 @@ namespace Konline.Scripts.Serilization
 
         protected virtual void UpdateClient()
         {
-            // finish this!
+            byte[] data = BinarySerializer.Serialize(this);
+            foreach(KeyValuePair<IPAddress , int> entry in NetworkManagerServer.Instance.Clients)
+            {
+                Packet packet = new Packet(entry.Key.ToString(), entry.Value , data);
+                NetworkManagerServer.Instance.AddToSendQueue(packet);
+            }
         }
 
 

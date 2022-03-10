@@ -96,14 +96,20 @@ namespace Konline.Scripts.UDP
             }
             this.Payload = payload;
         }
-
-
-
         //Update
         public Packet(string address, int port, byte[] payload)
         {
             this.PacketType = PacketType.Update;
             this.Payload = payload;
+            IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
+            this.RemoteEP = EP;
+        }
+
+        //hello
+        public Packet(string address, int port)
+        {
+            this.PacketType = PacketType.Hello;
+            this.Payload = new byte[1];
             IPEndPoint EP = new IPEndPoint(IPAddress.Parse(address), port);
             this.RemoteEP = EP;
         }

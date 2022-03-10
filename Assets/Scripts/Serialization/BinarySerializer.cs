@@ -80,6 +80,8 @@ namespace Konline.Scripts.Serilization
             Type fieldType = field.FieldType;
             object fieldValue = field.GetValue(targetObject);
 
+            
+
 
             if (fieldType.IsClass)
             {
@@ -242,6 +244,7 @@ namespace Konline.Scripts.Serilization
                     }
                 }
             }
+            
 
             return null;
         }
@@ -521,6 +524,7 @@ namespace Konline.Scripts.Serilization
         private static void DeserializeField(FieldInfo fieldInfo, SerializableObjectMono obj, BinaryReader br)
         {
             Type fieldType = fieldInfo.FieldType;
+            
 
             if (fieldType.IsClass && fieldType != typeof(string) && fieldType.IsArray == false)
             {
@@ -539,10 +543,11 @@ namespace Konline.Scripts.Serilization
 
 #endif
                 }
-                else if (fieldType.IsClass && fieldType != typeof(string) && fieldType.IsArray == false)
+            }
+            else if (fieldType.IsClass && fieldType != typeof(string) && fieldType.IsArray == false)
+            {
+                if (fieldType.IsSubclassOf(typeof(SerializableObjectMono)))
                 {
-                    if (fieldType.IsSubclassOf(typeof(SerializableObjectMono)))
-                    {
 #if !SERVER_BUILD
                         int key = br.ReadInt32();
                         SerializableObjectMono refObj = NetworkManagerClient.Instance.SerializableObjectMonos[key];
@@ -550,141 +555,143 @@ namespace Konline.Scripts.Serilization
 #endif
 
 #if SERVER_BUILD
-                        int key = br.ReadInt32();
-                        SerializableObjectMono refObj = NetworkManagerServer.Instance.SerializableObjectMonos[key];
-                        fieldInfo.SetValue(obj, refObj);
+                    int key = br.ReadInt32();
+                    SerializableObjectMono refObj = NetworkManagerServer.Instance.SerializableObjectMonos[key];
+                    fieldInfo.SetValue(obj, refObj);
 
 #endif
-                    }
                 }
-                else if (fieldType.IsPrimitive || fieldType == typeof(string))
+            }
+            else if (fieldType.IsPrimitive || fieldType == typeof(string))
+            {
+                if (fieldType == typeof(int) || fieldType.IsEnum)
                 {
-                    if (fieldType == typeof(int) || fieldType.IsEnum)
-                    {
-                        fieldInfo.SetValue(obj, br.ReadInt32());
-                    }
-                    else if (fieldType == typeof(float))
-                    {
-                        fieldInfo.SetValue(obj, br.ReadSingle());
-                    }
-                    else if (fieldType == typeof(bool))
-                    {
-                        fieldInfo.SetValue(obj, br.ReadBoolean());
-                    }
-                    else if (fieldType == typeof(string))
-                    {
-                        fieldInfo.SetValue(obj, br.ReadString());
-                    }
-
+                    fieldInfo.SetValue(obj, br.ReadInt32());
                 }
-                else if (fieldType.IsArray)
+                else if (fieldType == typeof(float))
                 {
-                    int len = br.ReadInt32();
-                    string elementTypeName = br.ReadString();
+                    fieldInfo.SetValue(obj, br.ReadSingle());
+                }
+                else if (fieldType == typeof(bool))
+                {
+
+                    fieldInfo.SetValue(obj, br.ReadBoolean());
+                }
+                else if (fieldType == typeof(string))
+                {
+                    fieldInfo.SetValue(obj, br.ReadString());
+                }
+
+            }
+            else if (fieldType.IsArray)
+            {
+
+                int len = br.ReadInt32();
+                string elementTypeName = br.ReadString();
 
 
-                    if (elementTypeName == typeof(SerializableObject).Name)
+                if (elementTypeName == typeof(SerializableObject).Name)
+                {
+                    int[] networkIDs = new int[len];
+                    SerializableObject[] serObjs = new SerializableObject[len];
+
+                    for (int i = 0; i < len; i++)
                     {
-                        int[] networkIDs = new int[len];
-                        SerializableObject[] serObjs = new SerializableObject[len];
+                        networkIDs[i] = br.ReadInt32();
+                    }
 
-                        for (int i = 0; i < len; i++)
-                        {
-                            networkIDs[i] = br.ReadInt32();
-                        }
-
-                        for (int i = 0; i < len; i++)
-                        {
+                    for (int i = 0; i < len; i++)
+                    {
 #if !SERVER_BUILD
                             serObjs[i] = NetworkManagerClient.Instance.SerializableObjects[networkIDs[i]];
 #endif
 #if SERVER_BUILD
 
-                            serObjs[i] = NetworkManagerServer.Instance.SerializableObjects[networkIDs[i]];
+                        serObjs[i] = NetworkManagerServer.Instance.SerializableObjects[networkIDs[i]];
 
 
 #endif
 
-                        }
-
-                        fieldInfo.SetValue(obj, serObjs);
-
                     }
-                    else if (elementTypeName == typeof(SerializableObjectMono).Name)
+
+                    fieldInfo.SetValue(obj, serObjs);
+
+                }
+                else if (elementTypeName == typeof(SerializableObjectMono).Name)
+                {
+                    int[] networkIDs = new int[len];
+                    SerializableObjectMono[] serObjs = new SerializableObjectMono[len];
+
+                    for (int i = 0; i < len; i++)
                     {
-                        int[] networkIDs = new int[len];
-                        SerializableObjectMono[] serObjs = new SerializableObjectMono[len];
+                        networkIDs[i] = br.ReadInt32();
+                    }
 
-                        for (int i = 0; i < len; i++)
-                        {
-                            networkIDs[i] = br.ReadInt32();
-                        }
-
-                        for (int i = 0; i < len; i++)
-                        {
+                    for (int i = 0; i < len; i++)
+                    {
 #if !SERVER_BUILD
                             serObjs[i] = NetworkManagerClient.Instance.SerializableObjectMonos[networkIDs[i]];
 #endif
 #if SERVER_BUILD
-                            serObjs[i] = NetworkManagerServer.Instance.SerializableObjectMonos[networkIDs[i]];
+                        serObjs[i] = NetworkManagerServer.Instance.SerializableObjectMonos[networkIDs[i]];
 #endif
 
-                        }
-
-                        fieldInfo.SetValue(obj, serObjs);
-
                     }
 
-
-
-
-                    if (elementTypeName == "Int32")
-                    {
-                        int[] ints = new int[len];
-                        for (int i = 0; i < len; i++)
-                        {
-                            ints[i] = br.ReadInt32();
-                        }
-
-                        fieldInfo.SetValue(obj, ints);
-                    }
-                    else if (elementTypeName == "Single")
-                    {
-                        float[] floats = new float[len];
-                        for (int i = 0; i < len; i++)
-                        {
-                            floats[i] = br.ReadSingle();
-                        }
-
-                        fieldInfo.SetValue(obj, floats);
-                    }
-                    else if (elementTypeName == "Boolean")
-                    {
-                        bool[] bools = new bool[len];
-                        for (int i = 0; i < len; i++)
-                        {
-                            bools[i] = br.ReadBoolean();
-                        }
-
-                        fieldInfo.SetValue(obj, bools);
-                    }
-                    else if (elementTypeName == "String")
-                    {
-                        string[] strings = new string[len];
-                        for (int i = 0; i < len; i++)
-                        {
-                            strings[i] = br.ReadString();
-                        }
-
-                        fieldInfo.SetValue(obj, strings);
-                    }
-
+                    fieldInfo.SetValue(obj, serObjs);
 
                 }
 
 
 
+
+                if (elementTypeName == "Int32")
+                {
+                    int[] ints = new int[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        ints[i] = br.ReadInt32();
+                    }
+
+                    fieldInfo.SetValue(obj, ints);
+                }
+                else if (elementTypeName == "Single")
+                {
+                    float[] floats = new float[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        floats[i] = br.ReadSingle();
+                    }
+
+                    fieldInfo.SetValue(obj, floats);
+                }
+                else if (elementTypeName == "Boolean")
+                {
+                    bool[] bools = new bool[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        bools[i] = br.ReadBoolean();
+                    }
+
+                    fieldInfo.SetValue(obj, bools);
+                }
+                else if (elementTypeName == "String")
+                {
+                    string[] strings = new string[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        strings[i] = br.ReadString();
+                    }
+
+                    fieldInfo.SetValue(obj, strings);
+                }
+
+
             }
+
+
+
+            
         }
     }
 }

@@ -155,7 +155,13 @@ namespace Konline.Scripts.UDP
             }
             return null;
         }
+
+        private void OnDestroy()
+        {
+            m_ClientSOCK.Close();
+        }
     }
+
     public class StateObject
     {
         public StateObject(int bufferSize)

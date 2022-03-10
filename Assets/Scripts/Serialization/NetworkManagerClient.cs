@@ -50,6 +50,9 @@ namespace Konline.Scripts.Serilization {
         // Start is called before the first frame update
         async void Start()
         {
+            Packet packet = new Packet(SERVER_ADDR, SERVER_PORT);
+            AddToSendQueue(packet);
+
             GameObject obj = await SendCreateRequest("Player");
             Player player = obj.GetComponent<Player>();
             if(player != null)
@@ -120,6 +123,7 @@ namespace Konline.Scripts.Serilization {
                                     {
                                         SOM.NetworkID = br.ReadInt32();
                                         Debug.Log(SOM.NetworkID);
+                                        TrackNetID(SOM);
                                     }
                                     m_TempPrefabs.Add(tempID, gameObject);
                                 }
@@ -135,7 +139,32 @@ namespace Konline.Scripts.Serilization {
                 }
                 else if(packet.PacketType == PacketType.Update)
                 {
+                    string ClassID;
+                    int NetworkID;
 
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        ms.Write(packet.Payload, 0, packet.Payload.Length);
+                        ms.Position = 0;
+
+                        using (BinaryReader br = new BinaryReader(ms, Encoding.UTF8))
+                        {
+                            ClassID = br.ReadString();
+                            NetworkID = br.ReadInt32();
+                            ms.Position = 0;
+                            Type type = Type.GetType(ClassID);
+                            if (type.IsSubclassOf(typeof(SerializableObject)))
+                            {
+                                BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+
+                            }
+                            else if (type.IsSubclassOf(typeof(SerializableObjectMono)))
+                            {
+                                BinarySerializer.Deserialize(SerializableObjectMonos[NetworkID], ms.ToArray());
+                                
+                            }
+                        }
+                    }
                 }
             }
         }
