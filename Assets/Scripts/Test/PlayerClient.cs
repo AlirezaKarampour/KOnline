@@ -6,6 +6,9 @@ using Konline.Scripts.Serilization;
 
 public partial class Player : SerializableObjectMono
 {
+    private bool m_AllowMoveC;
+    
+
 
     override protected void Awake()
     {
@@ -15,18 +18,16 @@ public partial class Player : SerializableObjectMono
 
     private void Update()
     {
-        Vector3 pos = new Vector3(m_Position[0], m_Position[1], m_Position[2]);
-        transform.position = pos;
 
         if(Input.GetKey(KeyCode.W))
         {
-            m_AllowMove = true;
+            m_AllowMoveC = true;
         }
         else
         {
-            m_AllowMove = false;
+            m_AllowMoveC = false;
         }
-        
+        m_AllowMove = m_AllowMoveC;
     }
 }
 #endif
