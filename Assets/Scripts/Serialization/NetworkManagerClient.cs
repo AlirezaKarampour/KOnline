@@ -17,6 +17,7 @@ namespace Konline.Scripts.Serilization {
 
         public const string SERVER_ADDR = "127.0.0.1";
         public const int SERVER_PORT = 15000;
+        public float m_Timer { get; private set; }
 
         private int m_TempID = 20;
         private Dictionary<int, SerializableObject> m_TempSOs;
@@ -31,6 +32,7 @@ namespace Konline.Scripts.Serilization {
 
 
         private Queue<Packet> m_RecvQ;
+
 
         public override void Awake()
         {
@@ -64,8 +66,12 @@ namespace Konline.Scripts.Serilization {
         // Update is called once per frame
         void Update()
         {
-            AnalyzePacket();
-
+            m_Timer += Time.deltaTime * 1000;
+            if (m_Timer >= m_Client.Delay)
+            {
+                AnalyzePacket();
+                m_Timer = 0;
+            }
             
         }
 

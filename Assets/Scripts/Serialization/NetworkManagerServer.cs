@@ -16,6 +16,7 @@ namespace Konline.Scripts.Serilization
     {
         [SerializeField] private UDPServer m_Server;
         [SerializeField] private ClassStorage m_ClassStorage;
+        public float m_Timer { get; private set; }
 
         private int m_NextAvalibleID = 10;
 
@@ -45,7 +46,12 @@ namespace Konline.Scripts.Serilization
         // Update is called once per frame
         void Update()
         {
-            AnalyzePacket();
+            m_Timer += Time.deltaTime * 1000;
+            if (m_Timer >= m_Server.Delay)
+            {
+                AnalyzePacket();
+                m_Timer = 0;
+            }
         }
 
         private void AnalyzePacket()

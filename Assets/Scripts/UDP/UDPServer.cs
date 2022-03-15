@@ -67,37 +67,28 @@ namespace Konline.Scripts.UDP
 
         private async void SendLoop()
         {
-            float timer = 0;
             while (m_ShouldSend)
             {
-                timer += Time.deltaTime * 1000;
-                //timer >= (1000 / TickRate)
-                if (true)
+                if (m_SendQ.Count > 0)
                 {
-                    OnServerTick?.Invoke();
-
-                    if (m_SendQ.Count > 0)
+                    if (m_IsSending == false)
                     {
-                        if (m_IsSending == false)
-                        {
-                            StateObject so = MakeStateObject(m_ServerSOCK);
-
-                            //await Task.Delay(Delay);
-
-                            m_ServerSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
-                            m_IsSending = true;
-                            timer = 0;
-                        }
-                        else
-                        {
-                            await Task.Yield();
-                        }
+                        StateObject so = MakeStateObject(m_ServerSOCK);
+                        m_ServerSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
+                        m_IsSending = true;
                     }
                     else
                     {
                         await Task.Yield();
                     }
                 }
+                else
+                {
+                    await Task.Yield();
+                }
+
+                
+                
             }
         } 
 
