@@ -60,8 +60,9 @@ namespace Konline.Scripts.Serilization
         [Shared]
         public string ClassID;
 
-        
-
+#if !SERVER_BUILD
+        public bool IsOwner;
+#endif
 
         protected virtual void Awake()
         {

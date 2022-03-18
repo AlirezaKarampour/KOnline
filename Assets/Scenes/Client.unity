@@ -437,7 +437,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7980440839509417455, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
       propertyPath: Delay
-      value: 100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7980440839509417455, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
       propertyPath: TickRate

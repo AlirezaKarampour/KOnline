@@ -130,6 +130,14 @@ namespace Konline.Scripts.Serilization {
                                     {
                                         SOM.NetworkID = br.ReadInt32();
                                         Debug.Log(SOM.NetworkID);
+                                        if(tempID != 0)
+                                        {
+                                            SOM.IsOwner = true;
+                                        }
+                                        else
+                                        {
+                                            SOM.IsOwner = false;
+                                        }
                                         TrackNetID(SOM);
                                     }
                                     if (tempID != 0)

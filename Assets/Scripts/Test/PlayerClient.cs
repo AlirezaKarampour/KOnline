@@ -24,20 +24,22 @@ public partial class Player : SerializableObjectMono
         m_Pos.z = Position[2];
         transform.position = m_Pos;
 
-
-        if (Input.GetKey(KeyCode.W))
+        if (IsOwner)
         {
-            m_AllowMoveC = true;
-        }
-        else
-        {
-            m_AllowMoveC = false;
-        }
-        m_AllowMove = m_AllowMoveC;
+            if (Input.GetKey(KeyCode.W))
+            {
+                m_AllowMoveC = true;
+            }
+            else
+            {
+                m_AllowMoveC = false;
+            }
+            m_AllowMove = m_AllowMoveC;
 
-        byte[] data = BinarySerializer.Serialize(this);
-        Packet packet = new Packet(NetworkManagerClient.SERVER_ADDR, NetworkManagerClient.SERVER_PORT, data);
-        NetworkManagerClient.Instance.AddToSendQueue(packet);
+            byte[] data = BinarySerializer.Serialize(this);
+            Packet packet = new Packet(NetworkManagerClient.SERVER_ADDR, NetworkManagerClient.SERVER_PORT, data);
+            NetworkManagerClient.Instance.AddToSendQueue(packet);
+        }
     }
 }
 #endif

@@ -430,7 +430,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3555738178986575907, guid: 984316e936630ae48ac7bb2395929ce6, type: 3}
       propertyPath: Delay
-      value: 100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3555738178986575907, guid: 984316e936630ae48ac7bb2395929ce6, type: 3}
       propertyPath: TickRate
