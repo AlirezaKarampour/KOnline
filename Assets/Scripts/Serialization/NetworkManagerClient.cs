@@ -52,6 +52,7 @@ namespace Konline.Scripts.Serilization {
         // Start is called before the first frame update
         async void Start()
         {
+            //works as a login mechanism !
             Packet packet = new Packet(SERVER_ADDR, SERVER_PORT);
             AddToSendQueue(packet);
 
@@ -59,7 +60,7 @@ namespace Konline.Scripts.Serilization {
             Player player = obj.GetComponent<Player>();
             if(player != null)
             {
-                Debug.Log(player.NetworkID);
+                Debug.Log(player.NetworkID + "!");
             }
         }
 
@@ -131,7 +132,10 @@ namespace Konline.Scripts.Serilization {
                                         Debug.Log(SOM.NetworkID);
                                         TrackNetID(SOM);
                                     }
-                                    m_TempPrefabs.Add(tempID, gameObject);
+                                    if (tempID != 0)
+                                    {
+                                        m_TempPrefabs.Add(tempID, gameObject);
+                                    }
                                 }
                                 else
                                 {
@@ -161,12 +165,18 @@ namespace Konline.Scripts.Serilization {
                             Type type = Type.GetType(ClassID);
                             if (type.IsSubclassOf(typeof(SerializableObject)))
                             {
-                                BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+                                if (SerializableObjects.ContainsKey(NetworkID))
+                                {
+                                    BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+                                }
 
                             }
                             else if (type.IsSubclassOf(typeof(SerializableObjectMono)))
                             {
-                                BinarySerializer.Deserialize(SerializableObjectMonos[NetworkID], ms.ToArray());
+                                if (SerializableObjectMonos.ContainsKey(NetworkID))
+                                {
+                                    BinarySerializer.Deserialize(SerializableObjectMonos[NetworkID], ms.ToArray());
+                                }
                                 
                             }
                         }

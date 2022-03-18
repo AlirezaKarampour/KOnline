@@ -50,6 +50,7 @@ namespace Konline.Scripts.UDP
             this.Payload = payload;
         }
 
+        
         public Packet(string address, int port, string prefabName , int tempID)
         {
             this.PacketType = PacketType.Create;

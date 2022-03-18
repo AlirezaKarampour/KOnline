@@ -21,9 +21,9 @@ public partial class Player : SerializableObjectMono
         }
 
         byte[] data = BinarySerializer.Serialize(this);
-        foreach (KeyValuePair<IPAddress, int> entry in NetworkManagerServer.Instance.Clients)
+        foreach (KeyValuePair<int, IPAddress> entry in NetworkManagerServer.Instance.Clients)
         {
-            Packet packet = new Packet(entry.Key.ToString(), entry.Value, data);
+            Packet packet = new Packet(entry.Value.ToString(), entry.Key, data);
             NetworkManagerServer.Instance.AddToSendQueue(packet);
         }
 

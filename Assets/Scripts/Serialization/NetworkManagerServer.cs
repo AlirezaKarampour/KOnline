@@ -20,7 +20,7 @@ namespace Konline.Scripts.Serilization
 
         private int m_NextAvalibleID = 10;
 
-        public Dictionary<IPAddress, int> Clients;
+        public Dictionary<int, IPAddress> Clients;
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
 
@@ -30,7 +30,7 @@ namespace Konline.Scripts.Serilization
         {
             base.Awake();
             m_ClassStorage.Init();
-            Clients = new Dictionary<IPAddress, int>();
+            Clients = new Dictionary<int, IPAddress>();
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
             m_RecvQ = new Queue<Packet>();
@@ -110,9 +110,17 @@ namespace Konline.Scripts.Serilization
                                 SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
                                 if (SOMs.Length > 0)
                                 {
-
-                                    Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SOMs , tempID);
-                                    AddToSendQueue(answer);
+                                    foreach (KeyValuePair<int, IPAddress> entry in Clients)
+                                    {
+                                        if(entry.Key == packet.RemoteEP.Port && entry.Value.ToString() == packet.RemoteEP.Address.ToString())
+                                        {
+                                            Packet toSameClient = new Packet(entry.Value.ToString(), entry.Key, SOMs, tempID);
+                                            AddToSendQueue(toSameClient);
+                                            continue;
+                                        }
+                                        Packet toOthers = new Packet(entry.Value.ToString(), entry.Key, SOMs, 0);
+                                        AddToSendQueue(toOthers);
+                                    }
                                 }
                                 else
                                 {
@@ -153,7 +161,7 @@ namespace Konline.Scripts.Serilization
                 }
                 else if (packet.PacketType == PacketType.Hello)
                 {
-                    Clients.Add(packet.RemoteEP.Address, packet.RemoteEP.Port);
+                    Clients.Add(packet.RemoteEP.Port, packet.RemoteEP.Address);
                 }
             }
         }

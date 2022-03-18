@@ -14,7 +14,6 @@ namespace Konline.Scripts.UDP
 {
     public class UDPServer : MonoBehaviour
     {
-        public int TickRate = 60;
         public int Delay = 100;
 
         private Socket m_ServerSOCK;
