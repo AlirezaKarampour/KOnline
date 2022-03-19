@@ -9,12 +9,13 @@ using System.Net;
 using System.Net.Sockets;
 using Konline.Scripts.UDP;
 using Konline.Scripts.ObjectReplication;
+using Unity.Networking.Transport;
 
 namespace Konline.Scripts.Serilization
 {
     public class NetworkManagerServer : GenericSingleton<NetworkManagerServer>
     {
-        [SerializeField] private UDPServer m_Server;
+        [SerializeField] public UDPServer Server;
         [SerializeField] private ClassStorage m_ClassStorage;
         public float m_Timer { get; private set; }
 
@@ -46,12 +47,10 @@ namespace Konline.Scripts.Serilization
         // Update is called once per frame
         void Update()
         {
-            m_Timer += Time.deltaTime * 1000;
-            if (m_Timer >= m_Server.Delay)
-            {
-                AnalyzePacket();
-                m_Timer = 0;
-            }
+            
+            AnalyzePacket();
+                
+            
         }
 
         private void AnalyzePacket()
@@ -85,7 +84,7 @@ namespace Konline.Scripts.Serilization
                                 
                                 object obj = Activator.CreateInstance(type);
                                 SerializableObject SO = (SerializableObject)obj;
-                                Packet answer = new Packet(packet.RemoteEP.Address.ToString(), packet.RemoteEP.Port, SO);
+                                Packet answer = new Packet(packet.RemoteEP, SO);
                                 byte[] payload;
                                 using (MemoryStream ms1 = new MemoryStream())
                                 {
@@ -110,15 +109,15 @@ namespace Konline.Scripts.Serilization
                                 SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
                                 if (SOMs.Length > 0)
                                 {
-                                    foreach (KeyValuePair<int, IPAddress> entry in Clients)
+                                    foreach (NetworkConnection networkConnection in Server.Connections)
                                     {
-                                        if(entry.Key == packet.RemoteEP.Port && entry.Value.ToString() == packet.RemoteEP.Address.ToString())
+                                        if(networkConnection == packet.RemoteEP)
                                         {
-                                            Packet toSameClient = new Packet(entry.Value.ToString(), entry.Key, SOMs, tempID);
+                                            Packet toSameClient = new Packet(networkConnection, SOMs, tempID);
                                             AddToSendQueue(toSameClient);
                                             continue;
                                         }
-                                        Packet toOthers = new Packet(entry.Value.ToString(), entry.Key, SOMs, 0);
+                                        Packet toOthers = new Packet(networkConnection, SOMs, 0);
                                         AddToSendQueue(toOthers);
                                     }
                                 }
@@ -161,7 +160,7 @@ namespace Konline.Scripts.Serilization
                 }
                 else if (packet.PacketType == PacketType.Hello)
                 {
-                    Clients.Add(packet.RemoteEP.Port, packet.RemoteEP.Address);
+                    //Clients.Add(packet.RemoteEP.Port, packet.RemoteEP.Address);
                 }
             }
         }
@@ -192,7 +191,7 @@ namespace Konline.Scripts.Serilization
 
         public void AddToSendQueue(Packet packet)
         {
-            m_Server.AddToSendQueue(packet);
+            Server.AddToSendQueue(packet);
         }
 
     }

@@ -5,6 +5,7 @@ using UnityEngine;
 using Konline.Scripts.Serilization;
 using Konline.Scripts.UDP;
 using System.Net;
+using Unity.Networking.Transport;
 
 public partial class Player : SerializableObjectMono
 {
@@ -21,9 +22,9 @@ public partial class Player : SerializableObjectMono
         }
 
         byte[] data = BinarySerializer.Serialize(this);
-        foreach (KeyValuePair<int, IPAddress> entry in NetworkManagerServer.Instance.Clients)
+        foreach (NetworkConnection networkConnection in NetworkManagerServer.Instance.Server.Connections)
         {
-            Packet packet = new Packet(entry.Value.ToString(), entry.Key, data);
+            Packet packet = new Packet(networkConnection, data);
             NetworkManagerServer.Instance.AddToSendQueue(packet);
         }
 

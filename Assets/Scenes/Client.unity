@@ -287,6 +287,17 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!114 &1990267307 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7980440839509417455, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
+  m_PrefabInstance: {fileID: 2956513751636451034}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47f977873bfdd974e8159177c46a0a09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2138677391
 GameObject:
   m_ObjectHideFlags: 0
@@ -443,6 +454,10 @@ PrefabInstance:
       propertyPath: TickRate
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 8394280617093504480, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
+      propertyPath: Client
+      value: 
+      objectReference: {fileID: 1990267307}
     - target: {fileID: 8394280617093504480, guid: be65ba43bbfbd7343b56ee7634b6ba46, type: 3}
       propertyPath: m_ClassStorage
       value: 
