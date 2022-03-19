@@ -9,164 +9,114 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Konline.Scripts.Serilization;
+using Unity.Networking.Transport;
+using Unity.Collections;
 
 namespace Konline.Scripts.UDP
 {
     public class UDPServer : MonoBehaviour
     {
-        public int Delay = 100;
+        private NetworkDriver m_Server;
+        public NativeList<NetworkConnection> Connections;
 
-        private Socket m_ServerSOCK;
         private Queue<Packet> m_SendQ;
 
-        private bool m_IsSending = false;
-        private bool m_ShouldSend = true;
 
-        public static event Action OnServerTick;
-
-        private void Awake()
+        private void Start()
         {
-            m_ServerSOCK = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            m_ServerSOCK.DontFragment = true;
-
-            IPEndPoint localIPEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 15000);
-            EndPoint localEP = (EndPoint)localIPEP;
-
-            m_ServerSOCK.Bind(localEP);
-
-
             m_SendQ = new Queue<Packet>();
-        }
 
-        // Start is called before the first frame update
-        void Start()
-        {
-            StateObject so = new StateObject(1500);
-            so.Socket = m_ServerSOCK;
-            IPEndPoint remoteIPEP = new IPEndPoint(IPAddress.Any, 0);
-            so.UDP_RemoteEP = (EndPoint)remoteIPEP;
-
-            m_ServerSOCK.BeginReceiveFrom(so.buffer, 0, so.buffer.Length, SocketFlags.None, ref so.UDP_RemoteEP, RecvCB, so);
-            Debug.Log("server running on port: 1500...");
-
-            SendLoop();
-            
-
-
-
-        }
-
-        private void SendCB(IAsyncResult ar)
-        {
-            StateObject so = (StateObject)ar.AsyncState;
-            Socket serverSOCK = so.Socket;
-            serverSOCK.EndSendTo(ar);
-            m_IsSending = false;
-        }
-
-        private async void SendLoop()
-        {
-            while (m_ShouldSend)
+            m_Server = NetworkDriver.Create();
+            NetworkEndPoint endPoint = NetworkEndPoint.AnyIpv4;
+            endPoint.Port = 15000;
+            if(m_Server.Bind(endPoint) != 0)
             {
-                if (m_SendQ.Count > 0)
-                {
-                    if (m_IsSending == false)
-                    {
-                        StateObject so = MakeStateObject(m_ServerSOCK);
-                        m_ServerSOCK.BeginSendTo(so.buffer, 0, so.buffer.Length, SocketFlags.None, so.UDP_RemoteEP, SendCB, so);
-                        m_IsSending = true;
-                    }
-                    else
-                    {
-                        await Task.Yield();
-                    }
-                }
-                else
-                {
-                    await Task.Yield();
-                }
-
-                
-                
+                print("Failed to bind to 15000");
             }
-        } 
-
-
-
-        private void RecvCB(IAsyncResult ar)
-        {
-            StateObject so = (StateObject)ar.AsyncState;
-            Socket serverSOCK = so.Socket;
-            int len = serverSOCK.EndReceiveFrom(ar, ref so.UDP_RemoteEP);
-
-            if (len > 0)
+            else
             {
-                using (MemoryStream ms = new MemoryStream())
+                m_Server.Listen();
+            }
+
+            Connections = new NativeList<NetworkConnection>(16, Allocator.Persistent);
+        }
+
+        private void Update()
+        {
+            m_Server.ScheduleUpdate().Complete();
+
+            for (int i = 0; i < Connections.Length; i++)
+            {
+                if (!Connections[i].IsCreated)
                 {
-                    ms.Write(so.buffer, 0, len);
-                    ms.Position = 0;
-                    byte[] data = new byte[len];
-                    ms.Read(data, 0, data.Length);
-                    Packet packet = new Packet();
-                    if(so.UDP_RemoteEP is IPEndPoint)
-                    {
-                        packet.RemoteEP = (IPEndPoint)so.UDP_RemoteEP;
-                    }
-                    Packet.BytesToPacket(packet, data);
-
-                    NetworkManagerServer.Instance.AddToRecvQueue(packet);
-
+                    Connections.RemoveAtSwapBack(i);
+                    --i;
                 }
             }
 
-            serverSOCK.BeginReceiveFrom(so.buffer, 0, so.buffer.Length, SocketFlags.None, ref so.UDP_RemoteEP, RecvCB, so);
+            NetworkConnection c;
+            while ((c = m_Server.Accept()) != default(NetworkConnection))
+            {
+                Connections.Add(c);
+                Debug.Log("Accepted a connection");
+            }
+
+            DataStreamReader stream;
+            for(int i = 0; i < Connections.Length; i++)
+            {
+                if (!Connections[i].IsCreated)
+                {
+                    continue;
+                }
+
+                NetworkEvent.Type cmd;
+                while((cmd = m_Server.PopEventForConnection(Connections[i] , out stream)) != NetworkEvent.Type.Empty)
+                {
+                    if(cmd == NetworkEvent.Type.Data)
+                    {
+                        int length = stream.ReadInt();
+                        NativeArray<byte> data = new NativeArray<byte>(length, Allocator.TempJob);
+                        stream.ReadBytes(data);
+                        byte[] data1 = data.ToArray();
+                        data.Dispose();
+                        Packet packet = new Packet();
+                        packet.RemoteEP = Connections[i];
+                        Packet.BytesToPacket(packet, data1);
+                        NetworkManagerServer.Instance.AddToRecvQueue(packet);
+                        
+                    }
+                    else if ( cmd == NetworkEvent.Type.Disconnect)
+                    {
+                        Debug.Log("Client disconnected from server");
+                        Connections[i] = default(NetworkConnection);
+                    }
+                }
+            }
+
+            while(m_SendQ.Count > 0)
+            {
+                Packet packet = m_SendQ.Dequeue();
+                byte[] data = Packet.PacketToBytes(packet);
+                m_Server.BeginSend(packet.RemoteEP, out var writer);
+                NativeArray<byte> data1 = new NativeArray<byte>(data, Allocator.Temp);
+                writer.WriteBytes(data1);
+                m_Server.EndSend(writer);
+            }
 
         }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
-        private void OnDestroy()
-        {
-
-            m_ServerSOCK.Close();
-        }
-
         public void AddToSendQueue(Packet packet)
         {
             m_SendQ.Enqueue(packet);
         }
 
-        private StateObject MakeStateObject(Socket soSocket)
+
+        private void OnDestroy()
         {
-            if(m_SendQ.Count > 0)
-            {
-                Packet packet = m_SendQ.Dequeue();
-                byte[] data = Packet.PacketToBytes(packet);
-                StateObject so = new StateObject(1500);
-                so.Socket = soSocket;
-                so.buffer = data;
-                so.UDP_RemoteEP = packet.RemoteEP;
-                return so;
-            }
-            return null;
+            m_Server.Dispose();
+            Connections.Dispose();
         }
     }
 
-    public class StateObject
-    {
-        public StateObject(int bufferSize)
-        {
-            buffer = new byte[bufferSize];
-
-        }
-
-        public Socket Socket;
-        public byte[] buffer;
-        public EndPoint UDP_RemoteEP;
-    }
+   
 }
 #endif

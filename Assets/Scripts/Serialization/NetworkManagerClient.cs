@@ -13,10 +13,9 @@ namespace Konline.Scripts.Serilization {
     public partial class NetworkManagerClient : GenericSingleton<NetworkManagerClient>
     {
         [SerializeField] private ClassStorage m_ClassStorage;
-        [SerializeField] private UDPClient m_Client;
+        [SerializeField] public UDPClient Client;
 
-        public const string SERVER_ADDR = "127.0.0.1";
-        public const int SERVER_PORT = 15000;
+        
         public float m_Timer { get; private set; }
 
         private int m_TempID = 20;
@@ -53,8 +52,7 @@ namespace Konline.Scripts.Serilization {
         async void Start()
         {
             //works as a login mechanism !
-            Packet packet = new Packet(SERVER_ADDR, SERVER_PORT);
-            AddToSendQueue(packet);
+            
 
             GameObject obj = await SendCreateRequest("Player");
             Player player = obj.GetComponent<Player>();
@@ -67,13 +65,9 @@ namespace Konline.Scripts.Serilization {
         // Update is called once per frame
         void Update()
         {
-            m_Timer += Time.deltaTime * 1000;
-            if (m_Timer >= m_Client.Delay)
-            {
-                AnalyzePacket();
-                m_Timer = 0;
-            }
             
+            AnalyzePacket();
+                
         }
 
         private void AnalyzePacket()
@@ -201,8 +195,8 @@ namespace Konline.Scripts.Serilization {
             m_TempID++;
             m_TempSOs.Add(serializableObject.NetworkID, serializableObject);
 
-            Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, serializableObject);
-            m_Client.AddToSendQueue(packet);
+            Packet packet = new Packet(Client.Connection, serializableObject);
+            Client.AddToSendQueue(packet);
 
         }
 
@@ -213,17 +207,7 @@ namespace Konline.Scripts.Serilization {
             return id;
         }
 
-        //needs to be compeleted!
-        //public void GetNetworkID(SerializableObjectMono serializableObject)
-        //{
-        //    serializableObject.NetworkID = m_TempID;
-        //    m_TempID++;
-        //    m_TempSOMs.Add(serializableObject.NetworkID, serializableObject);
-
-        //    Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, serializableObject);
-        //    m_Client.AddToSendQueue(packet);
-
-        //}
+        
 
         public async Task<GameObject> SendCreateRequest(string prefabName)
         {
@@ -231,8 +215,8 @@ namespace Konline.Scripts.Serilization {
 
             if (m_ClassStorage.HasPrefab(prefabName))
             {
-                Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, prefabName , tempID);
-                m_Client.AddToSendQueue(packet);
+                Packet packet = new Packet(Client.Connection, prefabName , tempID);
+                Client.AddToSendQueue(packet);
             }
             else
             {
@@ -265,7 +249,7 @@ namespace Konline.Scripts.Serilization {
 
         public void AddToSendQueue(Packet packet)
         {
-            m_Client.AddToSendQueue(packet);
+            Client.AddToSendQueue(packet);
         }
     }
 }
