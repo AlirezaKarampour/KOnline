@@ -24,16 +24,21 @@ namespace Konline.Scripts.UDP
         private bool m_IsDone = false;
         private bool m_AllowSend = false;
 
-        private void Start()
+        private void Awake()
         {
             m_SendQ = new Queue<Packet>();
-
             m_Client = NetworkDriver.Create();
             Connection = default(NetworkConnection);
 
             NetworkEndPoint endPoint = NetworkEndPoint.LoopbackIpv4;
             endPoint.Port = 15000;
             Connection = m_Client.Connect(endPoint);
+        }
+
+        private void Start()
+        {
+
+            
         }
 
         private void Update()

@@ -207,17 +207,7 @@ namespace Konline.Scripts.Serilization {
             return id;
         }
 
-        //needs to be compeleted!
-        //public void GetNetworkID(SerializableObjectMono serializableObject)
-        //{
-        //    serializableObject.NetworkID = m_TempID;
-        //    m_TempID++;
-        //    m_TempSOMs.Add(serializableObject.NetworkID, serializableObject);
-
-        //    Packet packet = new Packet(SERVER_ADDR, SERVER_PORT, serializableObject);
-        //    m_Client.AddToSendQueue(packet);
-
-        //}
+        
 
         public async Task<GameObject> SendCreateRequest(string prefabName)
         {

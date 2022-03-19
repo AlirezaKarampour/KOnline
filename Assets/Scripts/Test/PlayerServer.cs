@@ -16,10 +16,11 @@ public partial class Player : SerializableObjectMono
         if (m_AllowMove)
         {
             transform.position += (transform.forward * Time.deltaTime);
-            Position[0] = transform.position.x;
-            Position[1] = transform.position.y;
-            Position[2] = transform.position.z;
         }
+
+        Position[0] = transform.position.x;
+        Position[1] = transform.position.y;
+        Position[2] = transform.position.z;
 
         byte[] data = BinarySerializer.Serialize(this);
         foreach (NetworkConnection networkConnection in NetworkManagerServer.Instance.Server.Connections)
