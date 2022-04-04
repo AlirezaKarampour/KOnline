@@ -24,7 +24,7 @@ namespace Konline.Scripts.Serilization
         public Dictionary<int, IPAddress> Clients;
         public Dictionary<int, SerializableObject> SerializableObjects;
         public Dictionary<int, SerializableObjectMono> SerializableObjectMonos;
-
+        public List<PrefabInfo> PrefabInfos;
 
         private Queue<Packet> m_RecvQ;
         public override void Awake()
@@ -35,6 +35,7 @@ namespace Konline.Scripts.Serilization
             SerializableObjects = new Dictionary<int, SerializableObject>();
             SerializableObjectMonos = new Dictionary<int, SerializableObjectMono>();
             m_RecvQ = new Queue<Packet>();
+            PrefabInfos = new List<PrefabInfo>();
 
         }
 
@@ -102,11 +103,19 @@ namespace Konline.Scripts.Serilization
                             }
                             else
                             {
+                                PrefabInfo prefabInfo = new PrefabInfo();
+
                                 string prefabName = br.ReadString();
+                                prefabInfo.Name = prefabName;
+
                                 int tempID = br.ReadInt32();
                                 GameObject prefab = m_ClassStorage.GiveServerPrefab(prefabName);
                                 GameObject gameObject = Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
                                 SerializableObjectMono[] SOMs = gameObject.GetComponents<SerializableObjectMono>();
+                                prefabInfo.SOMs = SOMs;
+                                prefabInfo.Owner = packet.RemoteEP;
+                                PrefabInfos.Add(prefabInfo);
+
                                 if (SOMs.Length > 0)
                                 {
                                     foreach (NetworkConnection networkConnection in Server.Connections)
@@ -160,7 +169,11 @@ namespace Konline.Scripts.Serilization
                 }
                 else if (packet.PacketType == PacketType.Hello)
                 {
-                    //Clients.Add(packet.RemoteEP.Port, packet.RemoteEP.Address);
+                    for(int i = 0; i < PrefabInfos.Count; i++)
+                    {
+                        Packet answer = new Packet(packet.RemoteEP, PrefabInfos[i].SOMs, 0);
+                        AddToSendQueue(answer);
+                    }
                 }
             }
         }
@@ -194,6 +207,13 @@ namespace Konline.Scripts.Serilization
             Server.AddToSendQueue(packet);
         }
 
+    }
+
+    public struct PrefabInfo
+    {
+        public string Name;
+        public SerializableObjectMono[] SOMs;
+        public NetworkConnection Owner;
     }
 }
 #endif

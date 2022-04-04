@@ -28,6 +28,14 @@ namespace Konline.Scripts.UDP
         public Packet()
         {
         }
+        //hello
+        public Packet(NetworkConnection RemoteEP)
+        {
+            this.RemoteEP = RemoteEP;
+            this.PacketType = PacketType.Hello;
+            this.Payload = new byte[1];
+        }
+
 
         //Create
         public Packet(NetworkConnection RemoteEP, SerializableObject SO)
@@ -117,7 +125,10 @@ namespace Konline.Scripts.UDP
                 {
                     bw.Write(sizeof(int) + packet.Payload.Length);
                     bw.Write((int)packet.PacketType);
-                    bw.Write(packet.Payload);
+                    if (packet.Payload != null)
+                    {
+                        bw.Write(packet.Payload);
+                    }
                 }
                 return ms.ToArray();
             }

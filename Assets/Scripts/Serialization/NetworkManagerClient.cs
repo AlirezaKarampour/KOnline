@@ -52,7 +52,8 @@ namespace Konline.Scripts.Serilization {
         async void Start()
         {
             //works as a login mechanism !
-            
+            Packet packet = new Packet(Client.Connection);
+            AddToSendQueue(packet);
 
             GameObject obj = await SendCreateRequest("Player");
             Player player = obj.GetComponent<Player>();
