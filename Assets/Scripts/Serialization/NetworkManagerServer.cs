@@ -157,7 +157,10 @@ namespace Konline.Scripts.Serilization
                             Type type = Type.GetType(ClassID);
                             if (type.IsSubclassOf(typeof(SerializableObject)))
                             {
-                                BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+                                if (SerializableObjects.ContainsKey(NetworkID))
+                                {
+                                    BinarySerializer.Deserialize(SerializableObjects[NetworkID], ms.ToArray());
+                                }
 
                             }
                             else if (type.IsSubclassOf(typeof(SerializableObjectMono)))

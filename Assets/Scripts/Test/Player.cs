@@ -10,4 +10,7 @@ public partial class Player : SerializableObjectMono
 
     [Shared]
     public bool m_AllowMove = false;
+
+    [Shared]
+    public Human Human;
 }

@@ -85,6 +85,11 @@ namespace Konline.Scripts.Serilization
 
             if (fieldType.IsClass)
             {
+                if (fieldValue == null)
+                {
+                    byte[] data = BitConverter.GetBytes(-1);
+                    return data;
+                }
                 if (fieldValue is SerializableObject)
                 {
                     SerializableObject so = (SerializableObject)fieldValue;
@@ -512,7 +517,7 @@ namespace Konline.Scripts.Serilization
                     }
 
 
-
+                    //Debug.Log( ms.Length+" : "+BitConverter.ToString(ms.ToArray()));
                     foreach (FieldInfo f in fieldInfoList)
                     {
                         DeserializeField(f, obj, br);
@@ -532,15 +537,20 @@ namespace Konline.Scripts.Serilization
                 {
 #if !SERVER_BUILD
                     int key = br.ReadInt32();
-                    SerializableObject refObj = NetworkManagerClient.Instance.SerializableObjects[key];
-                    fieldInfo.SetValue(obj, refObj);
+                    if (NetworkManagerClient.Instance.SerializableObjects.ContainsKey(key))
+                    {
+                        SerializableObject refObj = NetworkManagerClient.Instance.SerializableObjects[key];
+                        fieldInfo.SetValue(obj, refObj);
+                    }
 #endif
 
 #if SERVER_BUILD
                     int key = br.ReadInt32();
-                    SerializableObject refObj = NetworkManagerServer.Instance.SerializableObjects[key];
-                    fieldInfo.SetValue(obj, refObj);
-
+                    if (NetworkManagerServer.Instance.SerializableObjects.ContainsKey(key))
+                    {
+                        SerializableObject refObj = NetworkManagerServer.Instance.SerializableObjects[key];
+                        fieldInfo.SetValue(obj, refObj);
+                    }
 #endif
                 }
             }
@@ -579,7 +589,9 @@ namespace Konline.Scripts.Serilization
                 }
                 else if (fieldType == typeof(string))
                 {
+                    //Debug.Log(br.BaseStream.Length);
                     fieldInfo.SetValue(obj, br.ReadString());
+                    
                 }
 
             }

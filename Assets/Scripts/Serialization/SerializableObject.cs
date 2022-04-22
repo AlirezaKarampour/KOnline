@@ -27,6 +27,16 @@ namespace Konline.Scripts.Serilization
             NetworkID = NetworkManagerServer.Instance.GiveNetworkID();
             NetworkManagerServer.Instance.TrackNetID(this);
         }
+
+        public virtual void UpdateClient()
+        {
+            byte[] data = BinarySerializer.Serialize(this);
+            foreach (NetworkConnection networkConnection in NetworkManagerServer.Instance.Server.Connections)
+            {
+                Packet packet = new Packet(networkConnection, data);
+                NetworkManagerServer.Instance.AddToSendQueue(packet);
+            }
+        }
 #endif
 
 
@@ -42,6 +52,13 @@ namespace Konline.Scripts.Serilization
             ClassID = this.GetType().Name;
             this.NetworkID = NetID;
             
+        }
+
+        public virtual void UpdateServer()
+        {
+            byte[] data = BinarySerializer.Serialize(this);
+            Packet packet = new Packet(NetworkManagerClient.Instance.Client.Connection, data);
+            NetworkManagerClient.Instance.AddToSendQueue(packet);
         }
 #endif
 

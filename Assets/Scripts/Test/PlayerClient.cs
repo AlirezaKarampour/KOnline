@@ -15,6 +15,8 @@ public partial class Player : SerializableObjectMono
     {
         base.Awake();
 
+        Human = new Human("alireza", 23);
+
     }
 
     private void Update()
@@ -36,7 +38,7 @@ public partial class Player : SerializableObjectMono
             }
             m_AllowMove = m_AllowMoveC;
 
-
+            Human.UpdateServer();
             UpdateServer();
         }
     }

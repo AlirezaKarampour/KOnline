@@ -12,6 +12,11 @@ public partial class Player : SerializableObjectMono
 
     private void Update()
     {
+        if (Human != null)
+        {
+            print(Human.Age);
+            Human.UpdateClient();
+        }
 
         if (m_AllowMove)
         {
@@ -22,7 +27,7 @@ public partial class Player : SerializableObjectMono
         Position[1] = transform.position.y;
         Position[2] = transform.position.z;
 
-
+        
         UpdateClient();
 
     }
