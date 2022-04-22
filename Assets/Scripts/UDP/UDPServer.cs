@@ -98,9 +98,10 @@ namespace Konline.Scripts.UDP
                 Packet packet = m_SendQ.Dequeue();
                 byte[] data = Packet.PacketToBytes(packet);
                 m_Server.BeginSend(packet.RemoteEP, out var writer);
-                NativeArray<byte> data1 = new NativeArray<byte>(data, Allocator.Temp);
+                NativeArray<byte> data1 = new NativeArray<byte>(data, Allocator.TempJob);
                 writer.WriteBytes(data1);
                 m_Server.EndSend(writer);
+                data1.Dispose();
             }
 
         }
