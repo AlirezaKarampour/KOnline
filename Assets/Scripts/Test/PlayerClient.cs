@@ -36,9 +36,8 @@ public partial class Player : SerializableObjectMono
             }
             m_AllowMove = m_AllowMoveC;
 
-            byte[] data = BinarySerializer.Serialize(this);
-            Packet packet = new Packet(NetworkManagerClient.Instance.Client.Connection, data);
-            NetworkManagerClient.Instance.AddToSendQueue(packet);
+
+            UpdateServer();
         }
     }
 }

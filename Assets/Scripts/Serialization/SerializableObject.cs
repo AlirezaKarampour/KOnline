@@ -5,6 +5,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using Konline.Scripts.UDP;
+using Unity.Networking.Transport;
 
 namespace Konline.Scripts.Serilization
 {
@@ -84,12 +85,26 @@ namespace Konline.Scripts.Serilization
 
 #if !SERVER_BUILD
         
+        protected virtual void UpdateServer()
+        {
+            byte[] data = BinarySerializer.Serialize(this);
+            Packet packet = new Packet(NetworkManagerClient.Instance.Client.Connection, data);
+            NetworkManagerClient.Instance.AddToSendQueue(packet);
+        }
             
 
 #endif
 #if SERVER_BUILD
         
-
+        protected virtual void UpdateClient()
+        {
+            byte[] data = BinarySerializer.Serialize(this);
+            foreach (NetworkConnection networkConnection in NetworkManagerServer.Instance.Server.Connections)
+            {
+                Packet packet = new Packet(networkConnection, data);
+                NetworkManagerServer.Instance.AddToSendQueue(packet);
+            }
+        }
        
 
 
